@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Your Character & House</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#FFF8EE;--warm:#FFF0D6;--text:#3E2723;--muted:#8D6E63;
+    --card:#FFFFFF;--border:#F0D9C0;--radius:20px;
+    --shadow:0 8px 32px rgba(62,39,35,0.10);
+    --fav:#FF7043;--fav-light:#FF704318;--fav-mid:#FF704355;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--cream);font-family:'Nunito',sans-serif;color:var(--text);min-height:100vh;
+    background-image:radial-gradient(circle at 10% 20%,#FFE0B2 0%,transparent 40%),
+    radial-gradient(circle at 90% 80%,#E8EAF6 0%,transparent 40%);}
+
+  /* ── Screen system ── */
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ── Step indicator ── */
+  .steps{display:flex;align-items:center;justify-content:center;gap:0;max-width:420px;margin:18px auto 0;padding:0 24px;}
+  .step{display:flex;align-items:center;gap:8px;font-family:'Baloo 2',cursive;font-size:.85rem;font-weight:700;color:var(--muted);}
+  .step.active{color:var(--fav);}
+  .step.done{color:var(--fav);opacity:.6;}
+  .step-dot{width:28px;height:28px;border-radius:50%;border:2.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;}
+  .step.active .step-dot{background:var(--fav);color:#fff;border-color:var(--fav);}
+  .step.done .step-dot{background:var(--fav-light);color:var(--fav);border-color:var(--fav);}
+  .step-line{width:40px;height:2.5px;background:var(--border);margin:0 4px;border-radius:2px;}
+  .step-line.done{background:var(--fav);opacity:.5;}
+
+  /* ── Shared header ── */
+  header{text-align:center;padding:36px 24px 0;}
+  header h1{font-family:'Baloo 2',cursive;font-size:2.6rem;font-weight:800;color:var(--fav);letter-spacing:-1px;line-height:1.1;}
+  header p{color:var(--muted);font-size:1rem;margin-top:6px;}
+
+  /* ── Shared layout ── */
+  .layout{display:flex;gap:28px;max-width:1040px;margin:28px auto 60px;padding:0 24px;align-items:flex-start;}
+  .preview-col{flex:0 0 268px;position:sticky;top:24px;}
+  .options-col{flex:1;display:flex;flex-direction:column;gap:18px;}
+
+  /* ── Preview card ── */
+  .preview-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:2px solid var(--fav-mid);overflow:hidden;transition:border-color .4s;}
+  .preview-banner{background:var(--fav);padding:14px 18px 12px;transition:background .4s;}
+  .preview-banner h2{font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:1px;}
+
+  /* ── Section cards ── */
+  .section-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;border:2px solid var(--border);transition:border-color .4s;}
+  .section-card.fav-card{border-color:var(--fav-mid);background:var(--fav-light);transition:background .4s,border-color .4s;}
+  .section-card h3{font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;transition:color .4s;}
+  .section-card.fav-card h3{color:var(--fav);}
+  .section-hint{font-size:.82rem;color:var(--muted);margin-bottom:12px;}
+
+  /* ── Opt buttons ── */
+  .option-grid{display:flex;flex-wrap:wrap;gap:9px;}
+  .opt-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 12px;
+    border:2px solid var(--border);border-radius:13px;background:var(--warm);cursor:pointer;
+    transition:all .18s;min-width:76px;font-family:'Nunito',sans-serif;font-size:.75rem;
+    font-weight:700;color:var(--muted);user-select:none;}
+  .opt-btn svg{display:block;}
+  .opt-btn:hover{border-color:var(--fav-mid);transform:translateY(-2px);}
+  .opt-btn.selected{border-color:var(--fav);background:var(--fav-light);color:var(--fav);box-shadow:0 4px 12px var(--fav-mid);transition:border-color .4s,background .4s,color .4s;}
+
+  /* ── Colour swatches ── */
+  .color-grid{display:flex;flex-wrap:wrap;gap:9px;align-items:center;}
+  .color-swatch{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;}
+  .color-swatch:hover{transform:scale(1.15);}
+  .color-swatch.selected{border-color:var(--text);transform:scale(1.18);}
+
+  /* ── Fav grid ── */
+  .fav-grid{display:flex;flex-wrap:wrap;gap:10px;}
+  .fav-swatch{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .15s;}
+  .fav-swatch:hover{transform:translateY(-3px);}
+  .fav-swatch .dot{width:40px;height:40px;border-radius:50%;border:3px solid transparent;transition:border-color .2s,transform .2s;box-shadow:0 3px 10px #0002;}
+  .fav-swatch.selected .dot{border-color:var(--text);transform:scale(1.12);}
+  .fav-swatch span{font-size:.68rem;font-weight:700;color:var(--muted);font-family:'Nunito',sans-serif;}
+  .fav-swatch.selected span{color:var(--fav);transition:color .4s;}
+  .custom-color-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1.5px solid var(--border);}
+  .custom-color-row label{font-size:.83rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+  #custom-color-input{width:40px;height:40px;border-radius:50%;border:3px solid var(--border);cursor:pointer;padding:2px;background:none;}
+  .custom-color-row span{font-size:.78rem;color:var(--muted);}
+
+  /* ── Toggle buttons ── */
+  .toggle-grid{display:flex;flex-wrap:wrap;gap:9px;}
+  .toggle-btn{display:flex;align-items:center;gap:7px;padding:8px 14px;border:2px solid var(--border);
+    border-radius:12px;background:var(--warm);cursor:pointer;font-family:'Nunito',sans-serif;
+    font-size:.8rem;font-weight:700;color:var(--muted);transition:all .18s;user-select:none;}
+  .toggle-btn:hover{border-color:var(--fav-mid);}
+  .toggle-btn.on{border-color:var(--fav);background:var(--fav-light);color:var(--fav);box-shadow:0 3px 10px var(--fav-mid);}
+  .toggle-dot{width:9px;height:9px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;transition:background .18s;}
+  .toggle-btn.on .toggle-dot{background:var(--fav);border-color:var(--fav);}
+
+  /* ── Name input ── */
+  .name-input{width:100%;font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:600;
+    padding:12px 18px;border:2px solid var(--border);border-radius:14px;background:var(--warm);
+    color:var(--text);outline:none;transition:border-color .3s;}
+  .name-input:focus{border-color:var(--fav);}
+  .name-input::placeholder{color:var(--muted);font-weight:400;}
+
+  /* ── Character preview bits ── */
+  #avatar-canvas{width:150px;height:188px;display:block;margin:0 auto 10px;}
+  .username-display{font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;color:var(--fav);min-height:26px;word-break:break-all;text-align:center;transition:color .4s;}
+  .username-display.empty{color:var(--muted);font-weight:400;font-size:.95rem;}
+  .fav-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 11px;
+    border-radius:20px;background:var(--fav-light);border:1.5px solid var(--fav-mid);
+    font-size:.75rem;font-weight:700;color:var(--fav);transition:background .4s,border-color .4s,color .4s;}
+  .fav-dot{width:11px;height:11px;border-radius:50%;background:var(--fav);display:inline-block;transition:background .4s;}
+  .char-preview-body{padding:0 0 18px;text-align:center;}
+
+  /* Mini house in char preview */
+  .house-preview-mini{margin:12px 16px 0;border-radius:10px;overflow:hidden;border:2px solid var(--fav-mid);transition:border-color .4s;}
+  .house-label{font-size:.7rem;font-weight:700;color:var(--fav);text-align:center;margin-top:5px;letter-spacing:.5px;text-transform:uppercase;transition:color .4s;}
+
+  /* ── House tab bar ── */
+  .tab-bar{display:flex;gap:0;max-width:1040px;margin:20px auto 0;padding:0 24px;}
+  .tab-btn{flex:1;padding:11px 6px;font-family:'Baloo 2',cursive;font-size:.88rem;font-weight:700;
+    color:var(--muted);background:var(--card);border:2px solid var(--border);cursor:pointer;
+    transition:all .2s;text-align:center;letter-spacing:.2px;}
+  .tab-btn:first-child{border-radius:16px 0 0 0;}
+  .tab-btn:last-child{border-radius:0 16px 0 0;}
+  .tab-btn.active{color:#fff;background:var(--fav);border-color:var(--fav);}
+  .tab-btn:not(.active):hover{border-color:var(--fav-mid);color:var(--fav);}
+  .tab-panel{display:none;flex-direction:column;gap:18px;}
+  .tab-panel.active{display:flex;}
+
+  /* ── House preview bits ── */
+  #house-svg{display:block;width:100%;border-bottom:2px solid var(--fav-mid);}
+  #interior-svg{display:none;width:100%;border-bottom:2px solid var(--fav-mid);}
+  .preview-stats{padding:10px 14px 12px;display:flex;flex-direction:column;gap:6px;}
+  .stat-row{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;}
+  .stat-label{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+  .stat-val{font-family:'Baloo 2',cursive;font-size:.88rem;font-weight:700;color:var(--fav);max-width:130px;text-align:right;}
+  .owner-strip{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1.5px solid var(--border);background:var(--fav-light);}
+  .owner-name{font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:800;color:var(--fav);}
+  .owner-sub{font-size:.68rem;color:var(--muted);font-weight:600;}
+
+  /* ── Buttons ── */
+  .start-btn,.finish-btn{width:100%;padding:15px;font-family:'Baloo 2',cursive;font-size:1.2rem;
+    font-weight:800;color:#fff;background:var(--fav);border:none;border-radius:15px;cursor:pointer;
+    letter-spacing:.5px;box-shadow:0 6px 22px var(--fav-mid);transition:transform .15s,filter .15s,background .4s;}
+  .start-btn:hover:not(:disabled),.finish-btn:hover{transform:translateY(-3px);filter:brightness(.92);}
+  .start-btn:disabled{background:var(--border);color:var(--muted);box-shadow:none;cursor:not-allowed;}
+  .nav-row{display:flex;gap:12px;}
+  .nav-btn{flex:1;padding:13px;font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:700;
+    border-radius:14px;cursor:pointer;transition:all .18s;border:2px solid var(--fav);}
+  .nav-btn.prev{background:var(--fav-light);color:var(--fav);}
+  .nav-btn.next{background:var(--fav);color:#fff;box-shadow:0 4px 14px var(--fav-mid);}
+  .nav-btn:hover{transform:translateY(-2px);filter:brightness(.94);}
+
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+  .pop{animation:pop .3s ease;}
+
+  @media(max-width:700px){
+    .layout{flex-direction:column;}
+    .preview-col{position:static;flex:none;width:100%;}
+    header h1{font-size:2rem;}
+    .tab-btn{font-size:.74rem;padding:9px 3px;}
+  }
+
+  /* ── Move-in screen ── */
+  #screen-movein header h1{font-size:2.8rem;}
+  .movein-layout{max-width:860px;margin:32px auto 60px;padding:0 24px;display:flex;flex-direction:column;gap:22px;}
+
+  .mi-hero{display:flex;gap:22px;align-items:flex-start;}
+  .mi-house-card{flex:1;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:2px solid var(--fav-mid);overflow:hidden;}
+  .mi-char-card{flex:0 0 190px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:2px solid var(--fav-mid);overflow:hidden;text-align:center;}
+  .mi-banner{background:var(--fav);padding:13px 16px;transition:background .4s;}
+  .mi-banner h2{font-family:'Baloo 2',cursive;font-size:.9rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:1px;}
+  .mi-char-body{padding:14px 12px 16px;}
+  .mi-player-name{font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;color:var(--fav);margin:8px 0 2px;transition:color .4s;}
+  .mi-player-sub{font-size:.75rem;color:var(--muted);font-weight:600;}
+
+  .mi-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+  .mi-stat{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;border:2px solid var(--border);}
+  .mi-stat-label{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+  .mi-stat-val{font-family:'Baloo 2',cursive;font-size:1rem;font-weight:800;color:var(--fav);line-height:1.3;transition:color .4s;}
+
+  .mi-colour-dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin-right:6px;border:2px solid #0002;}
+
+  .mi-actions{display:flex;gap:12px;flex-wrap:wrap;}
+  .mi-btn{flex:1;min-width:160px;padding:15px;font-family:'Baloo 2',cursive;font-size:1.05rem;font-weight:800;border-radius:15px;cursor:pointer;transition:transform .15s,filter .15s;letter-spacing:.3px;}
+  .mi-btn-primary{background:var(--fav);color:#fff;border:none;box-shadow:0 6px 22px var(--fav-mid);transition:background .4s,box-shadow .4s;}
+  .mi-btn-primary:hover{transform:translateY(-3px);filter:brightness(.92);}
+  .mi-btn-secondary{background:var(--fav-light);color:var(--fav);border:2px solid var(--fav-mid);transition:background .4s,border-color .4s,color .4s;}
+  .mi-btn-secondary:hover{transform:translateY(-2px);}
+
+  .mi-confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;}
+
+  @media(max-width:600px){
+    .mi-hero{flex-direction:column;}
+    .mi-char-card{flex:none;width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 1 — CHARACTER CREATOR
+═════════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-char">
+
+<header>
+  <h1>🏠 Create Your Character</h1>
+  <p>Design your avatar before stepping into your dream home!</p>
+</header>
+
+<!-- Step indicator -->
+<div class="steps">
+  <div class="step active" id="step1"><div class="step-dot">1</div>Character</div>
+  <div class="step-line" id="line1"></div>
+  <div class="step" id="step2"><div class="step-dot">2</div>House</div>
+  <div class="step-line" id="line2"></div>
+  <div class="step" id="step3"><div class="step-dot">3</div>Move In</div>
+</div>
+
+<div class="layout">
+  <!-- Character preview -->
+  <div class="preview-col">
+    <div class="preview-card">
+      <div class="preview-banner"><h2>Your Avatar</h2></div>
+      <div class="char-preview-body">
+        <svg id="avatar-canvas" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="name-display" class="username-display empty">your name here</div>
+        <div class="fav-badge"><span class="fav-dot"></span><span id="fav-label">Favourite colour</span></div>
+        <!-- Mini house -->
+        <div style="padding:0 14px;">
+          <svg class="house-preview-mini" id="char-house-svg" viewBox="0 0 220 110" width="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect width="220" height="110" fill="#D6EAFF"/>
+            <ellipse cx="40" cy="20" rx="18" ry="9" fill="white" opacity="0.85"/>
+            <ellipse cx="55" cy="16" rx="13" ry="8" fill="white" opacity="0.85"/>
+            <ellipse cx="170" cy="24" rx="16" ry="8" fill="white" opacity="0.8"/>
+            <ellipse cx="183" cy="20" rx="11" ry="7" fill="white" opacity="0.8"/>
+            <rect y="82" width="220" height="28" fill="#A5D6A7"/>
+            <rect id="mini-wall" x="60" y="46" width="100" height="48" rx="3" fill="#FF7043"/>
+            <polygon id="mini-roof" points="50,49 110,16 170,49" fill="#BF360C"/>
+            <rect x="95" y="66" width="20" height="28" rx="3" fill="#5D4037"/>
+            <circle cx="111" cy="81" r="2.2" fill="#FFD54F"/>
+            <rect x="67" y="56" width="16" height="14" rx="2" fill="#B3E5FC"/>
+            <line x1="75" y1="56" x2="75" y2="70" stroke="white" stroke-width="1.5"/>
+            <line x1="67" y1="63" x2="83" y2="63" stroke="white" stroke-width="1.5"/>
+            <rect x="137" y="56" width="16" height="14" rx="2" fill="#B3E5FC"/>
+            <line x1="145" y1="56" x2="145" y2="70" stroke="white" stroke-width="1.5"/>
+            <line x1="137" y1="63" x2="153" y2="63" stroke="white" stroke-width="1.5"/>
+            <polygon points="98,94 122,94 130,110 90,110" fill="#BCAAA4"/>
+          </svg>
+          <div class="house-label" id="house-label">Your house colour preview</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character options -->
+  <div class="options-col">
+    <div class="section-card">
+      <h3>✏️ Username</h3>
+      <input class="name-input" id="username" type="text" maxlength="20" placeholder="Enter your name..." autocomplete="off">
+    </div>
+    <div class="section-card fav-card" id="fav-section">
+      <h3>🎨 Favourite Colour</h3>
+      <p class="section-hint">This colours the menu and your house exterior!</p>
+      <div class="fav-grid" id="fav-grid"></div>
+      <div class="custom-color-row">
+        <label for="custom-color-input">Custom:</label>
+        <input type="color" id="custom-color-input" value="#FF7043" title="Pick any colour">
+        <span>Pick any colour you like</span>
+      </div>
+    </div>
+    <div class="section-card">
+      <h3>🎨 Skin Tone</h3>
+      <div class="color-grid" id="skin-grid"></div>
+    </div>
+    <div class="section-card">
+      <h3>💇 Hair Style</h3>
+      <div class="option-grid" id="hair-grid"></div>
+    </div>
+    <div class="section-card">
+      <h3>🎨 Hair Color</h3>
+      <div class="color-grid" id="haircolor-grid"></div>
+    </div>
+    <div class="section-card">
+      <h3>😊 Face Expression</h3>
+      <div class="option-grid" id="face-grid"></div>
+    </div>
+    <div class="section-card">
+      <h3>👕 Outfit</h3>
+      <div class="option-grid" id="outfit-grid"></div>
+    </div>
+    <div class="section-card">
+      <h3>🎨 Outfit Color</h3>
+      <div class="color-grid" id="outfitcolor-grid"></div>
+    </div>
+    <div class="section-card">
+      <h3>🎒 Accessory</h3>
+      <div class="option-grid" id="accessory-grid"></div>
+    </div>
+    <div class="section-card" style="padding:18px">
+      <button class="start-btn" id="start-btn" disabled>Design Your House →</button>
+    </div>
+  </div>
+</div>
+</div><!-- /screen-char -->
+
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 2 — HOUSE DESIGNER
+═════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-house">
+
+<header>
+  <h1>🏠 Design Your House</h1>
+  <p>Customise every detail — your dream home awaits!</p>
+</header>
+
+<div class="steps">
+  <div class="step done"><div class="step-dot">✓</div>Character</div>
+  <div class="step-line done"></div>
+  <div class="step active" id="step2b"><div class="step-dot">2</div>House</div>
+  <div class="step-line" id="line2b"></div>
+  <div class="step" id="step3b"><div class="step-dot">3</div>Move In</div>
+</div>
+
+<!-- House tab bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(0)">🏡 Exterior</button>
+  <button class="tab-btn" onclick="switchTab(1)">🚪 Doors & Windows</button>
+  <button class="tab-btn" onclick="switchTab(2)">🌳 Garden</button>
+  <button class="tab-btn" onclick="switchTab(3)">🛋️ Interior</button>
+</div>
+
+<div class="layout">
+  <!-- House preview -->
+  <div class="preview-col">
+    <div class="preview-card">
+      <div class="preview-banner"><h2 id="preview-title">Exterior Preview</h2></div>
+      <svg id="house-svg" viewBox="0 0 268 195" xmlns="http://www.w3.org/2000/svg">
+        <rect width="268" height="195" fill="#DDEEFF"/>
+        <rect width="268" height="52" fill="#C0D8F8" opacity="0.5"/>
+        <ellipse cx="50" cy="24" rx="21" ry="10" fill="white" opacity="0.88"/>
+        <ellipse cx="66" cy="18" rx="15" ry="9" fill="white" opacity="0.88"/>
+        <ellipse cx="202" cy="28" rx="18" ry="9" fill="white" opacity="0.82"/>
+        <ellipse cx="217" cy="22" rx="12" ry="7" fill="white" opacity="0.82"/>
+        <circle cx="240" cy="20" r="13" fill="#FFD54F" opacity="0.85"/>
+        <rect id="ground-rect" y="152" width="268" height="43" fill="#A5D6A7"/>
+        <g id="garden-group"></g>
+        <rect id="h-wall" x="68" y="88" width="132" height="76" rx="4" fill="#FF7043"/>
+        <rect id="h-floor2" x="78" y="44" width="112" height="48" rx="4" fill="#CC5733" opacity="0"/>
+        <g id="material-group"></g>
+        <polygon id="h-roof" points="56,92 134,42 212,92" fill="#5D4037"/>
+        <polygon id="h-roof2" points="66,48 134,10 202,48" fill="#4E342E" opacity="0"/>
+        <g id="chimney-group"></g>
+        <g id="door-group"></g>
+        <g id="window-group"></g>
+        <g id="accessory-group"></g>
+      </svg>
+      <svg id="interior-svg" viewBox="0 0 268 195" xmlns="http://www.w3.org/2000/svg">
+        <rect width="268" height="195" id="int-wall-rect" fill="#FFF9C4"/>
+        <rect y="164" width="268" height="31" id="int-floor-rect" fill="#BCAAA4"/>
+        <rect x="0" y="0" width="11" height="195" fill="#8D6E63" opacity="0.28"/>
+        <rect x="257" y="0" width="11" height="195" fill="#8D6E63" opacity="0.28"/>
+        <g id="furniture-group"></g>
+        <g id="decor-group"></g>
+      </svg>
+      <div class="preview-stats">
+        <div class="stat-row"><span class="stat-label">Style</span><span class="stat-val" id="stat-style">Cottage</span></div>
+        <div class="stat-row"><span class="stat-label">Floors</span><span class="stat-val" id="stat-floors">1</span></div>
+        <div class="stat-row"><span class="stat-label">Material</span><span class="stat-val" id="stat-mat">Paint</span></div>
+        <div class="stat-row"><span class="stat-label">Garden</span><span class="stat-val" id="stat-garden">None</span></div>
+      </div>
+      <div class="owner-strip">
+        <svg id="mini-avatar" width="38" height="48" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"></svg>
+        <div><div class="owner-name" id="owner-name-house">Player</div><div class="owner-sub">Future homeowner</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- House options -->
+  <div class="options-col">
+
+    <!-- TAB 0: Exterior -->
+    <div class="tab-panel active" id="panel-0">
+      <div class="section-card fav-card">
+        <h3>🎨 Wall Colour</h3>
+        <p class="section-hint">Defaults to your favourite colour!</p>
+        <div class="color-grid" id="wall-color-grid"></div>
+      </div>
+      <div class="section-card"><h3>🧱 Wall Material</h3><div class="option-grid" id="material-grid"></div></div>
+      <div class="section-card"><h3>🏡 House Style</h3><div class="option-grid" id="style-grid"></div></div>
+      <div class="section-card"><h3>🏢 Number of Floors</h3><div class="option-grid" id="floors-grid"></div></div>
+      <div class="section-card"><h3>🎨 Roof Colour</h3><div class="color-grid" id="roof-color-grid"></div></div>
+      <div class="section-card"><h3>⛺ Roof Shape</h3><div class="option-grid" id="roof-grid"></div></div>
+      <div class="section-card"><h3>✨ Extras</h3><div class="toggle-grid" id="extras-grid"></div></div>
+      <div class="section-card" style="padding:18px">
+        <div class="nav-row"><button class="nav-btn next" onclick="switchTab(1)">Next: Doors & Windows →</button></div>
+      </div>
+    </div>
+
+    <!-- TAB 1: Doors & Windows -->
+    <div class="tab-panel" id="panel-1">
+      <div class="section-card"><h3>🚪 Door Style</h3><div class="option-grid" id="door-grid"></div></div>
+      <div class="section-card"><h3>🎨 Door Colour</h3><div class="color-grid" id="door-color-grid"></div></div>
+      <div class="section-card"><h3>🪟 Window Style</h3><div class="option-grid" id="window-grid"></div></div>
+      <div class="section-card" style="padding:18px">
+        <div class="nav-row">
+          <button class="nav-btn prev" onclick="switchTab(0)">← Exterior</button>
+          <button class="nav-btn next" onclick="switchTab(2)">Next: Garden →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Garden -->
+    <div class="tab-panel" id="panel-2">
+      <div class="section-card">
+        <h3>🌳 Garden Elements</h3>
+        <p class="section-hint">Choose as many as you like!</p>
+        <div class="toggle-grid" id="garden-grid"></div>
+      </div>
+      <div class="section-card"><h3>🌿 Ground Cover</h3><div class="option-grid" id="ground-grid"></div></div>
+      <div class="section-card" style="padding:18px">
+        <div class="nav-row">
+          <button class="nav-btn prev" onclick="switchTab(1)">← Doors & Windows</button>
+          <button class="nav-btn next" onclick="switchTab(3)">Next: Interior →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Interior -->
+    <div class="tab-panel" id="panel-3">
+      <div class="section-card"><h3>🎨 Wall Paint</h3><div class="color-grid" id="int-wall-grid"></div></div>
+      <div class="section-card"><h3>🪵 Flooring</h3><div class="option-grid" id="floor-grid"></div></div>
+      <div class="section-card"><h3>🛋️ Furniture Style</h3><div class="option-grid" id="furniture-grid"></div></div>
+      <div class="section-card"><h3>🎨 Furniture Colour</h3><div class="color-grid" id="furn-color-grid"></div></div>
+      <div class="section-card">
+        <h3>🖼️ Room Decor</h3>
+        <p class="section-hint">Pick your favourite touches!</p>
+        <div class="toggle-grid" id="decor-grid"></div>
+      </div>
+      <div class="section-card" style="padding:18px">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="nav-row"><button class="nav-btn prev" onclick="switchTab(2)">← Garden</button></div>
+          <button class="finish-btn" id="finish-btn">Move In! 🎉</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div><!-- /screen-house -->
+
+<script>
+// ════════════════════════════════════════════════════
+// CHARACTER STATE & DATA
+// ════════════════════════════════════════════════════
+const avatar = {
+  skin:'#FDBCB4', hair:'short', hairColor:'#3E2723',
+  face:'happy', outfit:'tshirt', outfitColor:'#7C4DFF',
+  accessory:'none', favColor:'#FF7043'
+};
+
+const favColors = [
+  {hex:'#FF7043',name:'Terracotta'},{hex:'#E53935',name:'Red'},{hex:'#E91E8C',name:'Pink'},
+  {hex:'#9C27B0',name:'Purple'},{hex:'#3F51B5',name:'Indigo'},{hex:'#2196F3',name:'Blue'},
+  {hex:'#00BCD4',name:'Cyan'},{hex:'#009688',name:'Teal'},{hex:'#4CAF50',name:'Green'},
+  {hex:'#8BC34A',name:'Lime'},{hex:'#FFB300',name:'Amber'},{hex:'#FF6D00',name:'Orange'},
+  {hex:'#795548',name:'Brown'},{hex:'#607D8B',name:'Steel'},{hex:'#212121',name:'Charcoal'},
+];
+const skinTones    = ['#FDEFD4','#FDDBB4','#FDBCB4','#F5A97A','#E8965A','#D4784A','#C4713A','#A05530','#8D4C2A','#6B3520','#4A2912','#2E1A0E'];
+const hairColors   = ['#3E2723','#795548','#FF8F00','#E53935','#F9A825','#C0C0C0','#212121','#7B1FA2'];
+const outfitColors = ['#7C4DFF','#FF7043','#66BB6A','#29B6F6','#F06292','#FFB300','#455A64','#FFFFFF'];
+
+const hairStyles = [
+  {id:'short',label:'Short'},{id:'long',label:'Long'},{id:'curly',label:'Curly'},
+  {id:'bun',label:'Bun'},{id:'bald',label:'Bald'},{id:'spiky',label:'Spiky'},
+  {id:'ponytail',label:'Ponytail'},{id:'afro',label:'Afro'},{id:'braids',label:'Braids'},{id:'mohawk',label:'Mohawk'},
+];
+const faces = [
+  {id:'happy',label:'Happy'},{id:'cool',label:'Cool'},{id:'excited',label:'Excited'},{id:'calm',label:'Calm'},
+];
+const outfits = [
+  {id:'tshirt',label:'T-Shirt'},{id:'hoodie',label:'Hoodie'},{id:'dress',label:'Dress'},{id:'suit',label:'Suit'},
+];
+const accessories = [
+  {id:'none',label:'None'},{id:'glasses',label:'Glasses'},{id:'hat',label:'Hat'},{id:'earring',label:'Earring'},
+];
+
+// ── Character SVG icons ───────────────────────────────────────────────
+const hairIcons = {
+  short:    ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="12" rx="13" ry="10" fill="currentColor"/><rect x="5" y="12" width="26" height="8" rx="2" fill="currentColor"/></svg>`,
+  long:     ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="10" rx="13" ry="9" fill="currentColor"/><rect x="5" y="10" width="5" height="18" rx="2" fill="currentColor"/><rect x="26" y="10" width="5" height="18" rx="2" fill="currentColor"/></svg>`,
+  curly:    ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="12" rx="14" ry="10" fill="currentColor"/><circle cx="8" cy="8" r="5" fill="currentColor"/><circle cx="28" cy="8" r="5" fill="currentColor"/><circle cx="18" cy="4" r="5" fill="currentColor"/></svg>`,
+  bun:      ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="14" rx="12" ry="9" fill="currentColor"/><circle cx="18" cy="4" r="6" fill="currentColor"/></svg>`,
+  bald:     ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="14" rx="12" ry="10" fill="currentColor" opacity="0.18"/><ellipse cx="18" cy="14" rx="12" ry="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 3"/></svg>`,
+  spiky:    ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="14" rx="12" ry="9" fill="currentColor"/><polygon points="8,14 11,2 14,14" fill="currentColor"/><polygon points="15,12 18,0 21,12" fill="currentColor"/><polygon points="22,14 25,2 28,14" fill="currentColor"/></svg>`,
+  ponytail: ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="16" cy="12" rx="12" ry="10" fill="currentColor"/><rect x="4" y="12" width="8" height="14" rx="4" fill="currentColor"/><rect x="24" y="8" width="8" height="20" rx="4" fill="currentColor"/><circle cx="24" cy="8" r="4" fill="currentColor"/></svg>`,
+  afro:     ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="14" rx="16" ry="14" fill="currentColor"/><circle cx="6" cy="12" r="6" fill="currentColor"/><circle cx="30" cy="12" r="6" fill="currentColor"/><circle cx="18" cy="3" r="6" fill="currentColor"/><circle cx="10" cy="4" r="5" fill="currentColor"/><circle cx="26" cy="4" r="5" fill="currentColor"/></svg>`,
+  braids:   ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><ellipse cx="18" cy="10" rx="13" ry="9" fill="currentColor"/><rect x="5" y="10" width="7" height="18" rx="3" fill="currentColor"/><rect x="14" y="10" width="7" height="22" rx="3" fill="currentColor"/><rect x="23" y="10" width="7" height="18" rx="3" fill="currentColor"/><ellipse cx="8" cy="20" rx="3" ry="2" fill="currentColor" opacity="0.5"/><ellipse cx="17" cy="24" rx="3" ry="2" fill="currentColor" opacity="0.5"/><ellipse cx="26" cy="20" rx="3" ry="2" fill="currentColor" opacity="0.5"/></svg>`,
+  mohawk:   ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><rect x="13" y="2" width="10" height="22" rx="5" fill="currentColor"/><rect x="5" y="14" width="8" height="8" rx="4" fill="currentColor"/><rect x="23" y="14" width="8" height="8" rx="4" fill="currentColor"/></svg>`,
+};
+const faceIcons = {
+  happy:   ()=>`<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#FFD54F"/><circle cx="13" cy="15" r="2.5" fill="#3E2723"/><circle cx="23" cy="15" r="2.5" fill="#3E2723"/><path d="M12 22 Q18 28 24 22" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  cool:    ()=>`<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#FFD54F"/><rect x="10" y="13" width="7" height="4" rx="2" fill="#3E2723"/><rect x="19" y="13" width="7" height="4" rx="2" fill="#3E2723"/><path d="M13 24 Q18 27 23 24" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  excited: ()=>`<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#FFD54F"/><circle cx="13" cy="15" r="3" fill="#3E2723"/><circle cx="23" cy="15" r="3" fill="#3E2723"/><ellipse cx="18" cy="24" rx="5" ry="4" fill="#3E2723"/><ellipse cx="18" cy="24" rx="3.5" ry="2.5" fill="#FF5252"/></svg>`,
+  calm:    ()=>`<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#FFD54F"/><path d="M11 15 Q13 13 15 15" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M21 15 Q23 13 25 15" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="13" y1="24" x2="23" y2="24" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/></svg>`,
+};
+const outfitIcons = {
+  tshirt: ()=>`<svg width="36" height="32" viewBox="0 0 36 32"><path d="M4 8 L10 4 L14 10 L18 6 L22 10 L26 4 L32 8 L28 14 L24 12 L24 30 L12 30 L12 12 L8 14Z" fill="currentColor"/></svg>`,
+  hoodie: ()=>`<svg width="36" height="32" viewBox="0 0 36 32"><path d="M4 8 L10 4 Q14 12 18 12 Q22 12 26 4 L32 8 L29 15 L25 13 L25 30 L11 30 L11 13 L7 15Z" fill="currentColor"/><path d="M14 4 Q18 10 22 4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4"/></svg>`,
+  dress:  ()=>`<svg width="36" height="36" viewBox="0 0 36 36"><path d="M13 4 Q18 8 23 4 L28 14 L22 12 L26 34 L10 34 L14 12 L8 14Z" fill="currentColor"/></svg>`,
+  suit:   ()=>`<svg width="36" height="32" viewBox="0 0 36 32"><path d="M5 8 L11 4 L15 12 L18 8 L21 12 L25 4 L31 8 L27 30 L9 30Z" fill="currentColor"/><path d="M15 12 L18 18 L21 12" fill="white" opacity="0.5"/><rect x="16.5" y="8" width="3" height="14" fill="white" opacity="0.3" rx="1"/></svg>`,
+};
+const accIcons = {
+  none:    ()=>`<svg width="36" height="36" viewBox="0 0 36 36"><line x1="10" y1="10" x2="26" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="10" x2="10" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
+  glasses: ()=>`<svg width="36" height="20" viewBox="0 0 36 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="26" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="17" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="3" y2="10" stroke="currentColor" stroke-width="2"/><line x1="33" y1="10" x2="35" y2="10" stroke="currentColor" stroke-width="2"/></svg>`,
+  hat:     ()=>`<svg width="36" height="24" viewBox="0 0 36 24"><ellipse cx="18" cy="18" rx="16" ry="5" fill="currentColor"/><rect x="11" y="3" width="14" height="16" rx="4" fill="currentColor"/></svg>`,
+  earring: ()=>`<svg width="36" height="28" viewBox="0 0 36 28"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="9" y1="11" x2="9" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="24" r="3" fill="currentColor"/></svg>`,
+};
+
+// ── Apply favourite colour ────────────────────────────────────────────
+function applyFavColor(hex) {
+  avatar.favColor = hex;
+  const r = document.documentElement;
+  r.style.setProperty('--fav', hex);
+  r.style.setProperty('--fav-light', hex+'18');
+  r.style.setProperty('--fav-mid', hex+'55');
+  const wall = document.getElementById('mini-wall');
+  const roof = document.getElementById('mini-roof');
+  if (wall) wall.setAttribute('fill', hex);
+  if (roof) roof.setAttribute('fill', darken(hex, 0.3));
+  const label = favColors.find(f=>f.hex.toLowerCase()===hex.toLowerCase());
+  document.getElementById('fav-label').textContent = label ? label.name : 'Custom';
+  document.getElementById('custom-color-input').value = hex;
+  // Keep house wall colour in sync with fav if unchanged
+  if (house.wallColor === avatar.favColor || house._wallMatchesFav) {
+    house.wallColor = hex;
+    house._wallMatchesFav = true;
+    refreshWallColorGrid();
+    if (document.getElementById('screen-house').classList.contains('active')) renderHouse();
+  }
+}
+
+// ── Render avatar ─────────────────────────────────────────────────────
+function renderAvatar() {
+  const svg = document.getElementById('avatar-canvas');
+  const s=avatar.skin, h=avatar.hairColor, o=avatar.outfitColor;
+  let body='';
+  if(avatar.outfit==='dress') body=`<path d="M52 130 Q52 118 58 115 L80 108 L102 115 Q108 118 108 130 L116 180 L44 180Z" fill="${o}"/>`;
+  else if(avatar.outfit==='suit') body=`<rect x="52" y="108" width="56" height="72" rx="6" fill="${o}"/><polygon points="70,108 80,125 90,108 80,115" fill="white" opacity="0.6"/><rect x="77" y="112" width="6" height="40" rx="2" fill="white" opacity="0.3"/>`;
+  else if(avatar.outfit==='hoodie') body=`<rect x="50" y="108" width="60" height="72" rx="8" fill="${o}"/><path d="M62 108 Q80 124 98 108" fill="none" stroke="${o}" stroke-width="3" opacity="0.5"/>`;
+  else body=`<rect x="52" y="108" width="56" height="72" rx="6" fill="${o}"/>`;
+  const arms=`<rect x="34" y="110" width="18" height="44" rx="9" fill="${o}"/><rect x="108" y="110" width="18" height="44" rx="9" fill="${o}"/><rect x="34" y="150" width="18" height="16" rx="8" fill="${s}"/><rect x="108" y="150" width="18" height="16" rx="8" fill="${s}"/>`;
+  const legs=`<rect x="58" y="178" width="20" height="18" rx="6" fill="#5D4037"/><rect x="82" y="178" width="20" height="18" rx="6" fill="#5D4037"/>`;
+  const head=`<rect x="68" y="100" width="24" height="16" rx="4" fill="${s}"/><ellipse cx="80" cy="76" rx="28" ry="30" fill="${s}"/>`;
+  let hair='';
+  if(avatar.hair==='short')    hair=`<ellipse cx="80" cy="58" rx="28" ry="14" fill="${h}"/><rect x="52" y="56" width="10" height="18" rx="5" fill="${h}"/><rect x="98" y="56" width="10" height="18" rx="5" fill="${h}"/>`;
+  else if(avatar.hair==='long') hair=`<ellipse cx="80" cy="58" rx="28" ry="14" fill="${h}"/><rect x="52" y="58" width="10" height="52" rx="5" fill="${h}"/><rect x="98" y="58" width="10" height="52" rx="5" fill="${h}"/>`;
+  else if(avatar.hair==='curly') hair=`<ellipse cx="80" cy="58" rx="30" ry="16" fill="${h}"/><circle cx="54" cy="54" r="10" fill="${h}"/><circle cx="106" cy="54" r="10" fill="${h}"/><circle cx="80" cy="46" r="10" fill="${h}"/>`;
+  else if(avatar.hair==='bun') hair=`<ellipse cx="80" cy="62" rx="26" ry="14" fill="${h}"/><circle cx="80" cy="44" r="12" fill="${h}"/>`;
+  else if(avatar.hair==='bald') hair=`<ellipse cx="80" cy="62" rx="28" ry="8" fill="${h}" opacity="0.15"/>`;
+  else if(avatar.hair==='spiky') hair=`<ellipse cx="80" cy="62" rx="27" ry="13" fill="${h}"/><polygon points="58,62 64,42 70,62" fill="${h}"/><polygon points="74,58 80,36 86,58" fill="${h}"/><polygon points="90,62 96,42 102,62" fill="${h}"/>`;
+  else if(avatar.hair==='ponytail') hair=`<ellipse cx="78" cy="62" rx="24" ry="13" fill="${h}"/><rect x="52" y="58" width="10" height="10" rx="5" fill="${h}"/><rect x="100" y="54" width="12" height="46" rx="6" fill="${h}"/><circle cx="106" cy="54" r="8" fill="${h}"/>`;
+  else if(avatar.hair==='afro') hair=`<ellipse cx="80" cy="62" rx="36" ry="32" fill="${h}"/><circle cx="50" cy="58" r="14" fill="${h}"/><circle cx="110" cy="58" r="14" fill="${h}"/><circle cx="80" cy="38" r="14" fill="${h}"/><circle cx="62" cy="42" r="12" fill="${h}"/><circle cx="98" cy="42" r="12" fill="${h}"/>`;
+  else if(avatar.hair==='braids') hair=`<ellipse cx="80" cy="58" rx="27" ry="13" fill="${h}"/><rect x="56" y="58" width="10" height="52" rx="5" fill="${h}"/><rect x="75" y="58" width="10" height="62" rx="5" fill="${h}"/><rect x="94" y="58" width="10" height="52" rx="5" fill="${h}"/><ellipse cx="61" cy="112" rx="5" ry="3" fill="${h}" opacity="0.6"/><ellipse cx="80" cy="122" rx="5" ry="3" fill="${h}" opacity="0.6"/><ellipse cx="99" cy="112" rx="5" ry="3" fill="${h}" opacity="0.6"/>`;
+  else if(avatar.hair==='mohawk') hair=`<rect x="72" y="30" width="16" height="36" rx="8" fill="${h}"/><rect x="52" y="58" width="12" height="14" rx="6" fill="${h}"/><rect x="96" y="58" width="12" height="14" rx="6" fill="${h}"/>`;
+  let face='';
+  if(avatar.face==='happy') face=`<circle cx="68" cy="74" r="4" fill="#3E2723"/><circle cx="92" cy="74" r="4" fill="#3E2723"/><path d="M66 86 Q80 96 94 86" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  else if(avatar.face==='cool') face=`<rect x="60" y="70" width="12" height="6" rx="3" fill="#3E2723"/><rect x="88" y="70" width="12" height="6" rx="3" fill="#3E2723"/><path d="M70 87 Q80 92 90 87" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  else if(avatar.face==='excited') face=`<circle cx="68" cy="74" r="5" fill="#3E2723"/><circle cx="92" cy="74" r="5" fill="#3E2723"/><ellipse cx="80" cy="88" rx="8" ry="7" fill="#3E2723"/><ellipse cx="80" cy="88" rx="5.5" ry="4.5" fill="#EF5350"/>`;
+  else if(avatar.face==='calm') face=`<path d="M63 72 Q68 68 73 72" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M87 72 Q92 68 97 72" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="68" y1="87" x2="92" y2="87" stroke="#3E2723" stroke-width="2.5" stroke-linecap="round"/>`;
+  const blush=`<ellipse cx="61" cy="82" rx="7" ry="4" fill="#FF8A80" opacity="0.4"/><ellipse cx="99" cy="82" rx="7" ry="4" fill="#FF8A80" opacity="0.4"/>`;
+  let acc='';
+  if(avatar.accessory==='glasses') acc=`<circle cx="68" cy="74" r="10" fill="none" stroke="#3E2723" stroke-width="2.5"/><circle cx="92" cy="74" r="10" fill="none" stroke="#3E2723" stroke-width="2.5"/><line x1="78" y1="74" x2="82" y2="74" stroke="#3E2723" stroke-width="2"/><line x1="50" y1="72" x2="58" y2="73" stroke="#3E2723" stroke-width="2"/><line x1="102" y1="73" x2="110" y2="72" stroke="#3E2723" stroke-width="2"/>`;
+  else if(avatar.accessory==='hat') acc=`<ellipse cx="80" cy="50" rx="34" ry="7" fill="#5D4037"/><rect x="60" y="24" width="40" height="28" rx="8" fill="#5D4037"/>`;
+  else if(avatar.accessory==='earring') acc=`<circle cx="52" cy="80" r="4" fill="none" stroke="#FFB300" stroke-width="2.5"/><line x1="52" y1="84" x2="52" y2="96" stroke="#FFB300" stroke-width="2"/><circle cx="52" cy="99" r="4" fill="#FFB300"/>`;
+  svg.innerHTML=`${body}${arms}${legs}${head}${hair}${blush}${face}${acc}`;
+  svg.style.overflow='visible';
+}
+
+// ── Build character grids ─────────────────────────────────────────────
+function buildOptGridChar(id, items, key, iconMap) {
+  const grid = document.getElementById(id);
+  grid.innerHTML = '';
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (avatar[key]===item.id?' selected':'');
+    btn.innerHTML = (iconMap[item.id]?.()||'') + `<span>${item.label}</span>`;
+    btn.addEventListener('click', () => {
+      avatar[key] = item.id;
+      grid.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      renderAvatar();
+    });
+    grid.appendChild(btn);
+  });
+}
+function buildColorGridChar(id, colors, key) {
+  const grid = document.getElementById(id);
+  grid.innerHTML = '';
+  colors.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (avatar[key]===c?' selected':'');
+    sw.style.cssText = `background:${c};box-shadow:0 2px 8px ${c}55;`;
+    sw.addEventListener('click', () => {
+      avatar[key] = c;
+      grid.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      renderAvatar();
+    });
+    grid.appendChild(sw);
+  });
+}
+function buildFavGrid() {
+  const grid = document.getElementById('fav-grid');
+  grid.innerHTML = '';
+  favColors.forEach(fc => {
+    const wrap = document.createElement('div');
+    wrap.className = 'fav-swatch' + (avatar.favColor===fc.hex?' selected':'');
+    wrap.innerHTML = `<div class="dot" style="background:${fc.hex};box-shadow:0 3px 10px ${fc.hex}55"></div><span>${fc.name}</span>`;
+    wrap.addEventListener('click', () => {
+      grid.querySelectorAll('.fav-swatch').forEach(s=>s.classList.remove('selected'));
+      wrap.classList.add('selected');
+      applyFavColor(fc.hex);
+    });
+    grid.appendChild(wrap);
+  });
+}
+
+// ── Username ──────────────────────────────────────────────────────────
+document.getElementById('username').addEventListener('input', function() {
+  const display = document.getElementById('name-display');
+  const btn = document.getElementById('start-btn');
+  if (this.value.trim()) {
+    display.textContent = this.value;
+    display.classList.remove('empty');
+    btn.disabled = false;
+  } else {
+    display.textContent = 'your name here';
+    display.classList.add('empty');
+    btn.disabled = true;
+  }
+});
+
+// ── Custom colour ─────────────────────────────────────────────────────
+document.getElementById('custom-color-input').addEventListener('input', function() {
+  document.querySelectorAll('.fav-swatch').forEach(s=>s.classList.remove('selected'));
+  applyFavColor(this.value);
+});
+
+// ── Start button → switch to house screen ────────────────────────────
+document.getElementById('start-btn').addEventListener('click', function() {
+  this.classList.add('pop');
+  setTimeout(()=>this.classList.remove('pop'),300);
+  // Pass character name to house screen
+  const name = document.getElementById('username').value.trim();
+  document.getElementById('owner-name-house').textContent = name || 'Player';
+  // Seed house wall colour from fav
+  house.wallColor = avatar.favColor;
+  house._wallMatchesFav = true;
+  // Switch screens
+  document.getElementById('screen-char').classList.remove('active');
+  document.getElementById('screen-house').classList.add('active');
+  window.scrollTo(0,0);
+  // Re-init house grids so wall colour is correct
+  initHouseGrids();
+  renderMiniAvatar();
+  renderHouse();
+});
+
+
+// ════════════════════════════════════════════════════
+// HOUSE STATE & DATA
+// ════════════════════════════════════════════════════
+const house = {
+  wallColor:'#FF7043', material:'paint', style:'cottage', floors:1,
+  roofColor:'#5D4037', roofShape:'gable',
+  doorStyle:'classic', doorColor:'#5D4037', windowStyle:'square',
+  garden: new Set(), groundCover:'grass',
+  chimney:false, fence:false, mailbox:false, solar:false,
+  intWallColor:'#FFF9C4', flooring:'wood', furnitureStyle:'cosy', furnColor:'#795548',
+  decor: new Set(),
+  _wallMatchesFav: true,
+};
+
+const wallColors   = ['#FF7043','#FFCA28','#66BB6A','#29B6F6','#AB47BC','#EF5350','#26A69A','#EC407A','#FFFFFF','#CFD8DC','#8D6E63','#78909C','#FFF9C4','#FFCCBC','#B2EBF2','#D7CCC8'];
+const roofColors   = ['#5D4037','#37474F','#4E342E','#263238','#BF360C','#1A237E','#880E4F','#1B5E20','#F57F17','#E65100','#B71C1C','#212121','#795548','#546E7A','#4A148C','#FF6F00'];
+const doorColors   = ['#5D4037','#212121','#E53935','#1565C0','#2E7D32','#F57F17','#FFFFFF','#880E4F','#37474F','#4E342E','#BF360C','#6A1B9A'];
+const intWallColors= ['#FFF9C4','#FFCCBC','#E8F5E9','#E3F2FD','#F3E5F5','#FFFFFF','#FFF8E1','#E0F2F1','#FCE4EC','#EFEBE9','#E8EAF6','#F1F8E9','#FBE9E7','#E0F7FA','#F9FBE7','#FFFDE7'];
+const furnColors   = ['#795548','#5D4037','#BCAAA4','#FFFFFF','#FF7043','#7C4DFF','#29B6F6','#66BB6A','#FFB300','#EF5350','#455A64','#212121'];
+
+const materials  = [{id:'paint',label:'Paint'},{id:'brick',label:'Brick'},{id:'wood',label:'Wood'},{id:'stone',label:'Stone'},{id:'render',label:'Render'},{id:'log',label:'Log Cabin'}];
+const styles     = [{id:'cottage',label:'Cottage'},{id:'modern',label:'Modern'},{id:'victorian',label:'Victorian'},{id:'bungalow',label:'Bungalow'},{id:'castle',label:'Castle'}];
+const roofShapes = [{id:'gable',label:'Gable'},{id:'hip',label:'Hip'},{id:'flat',label:'Flat'},{id:'gambrel',label:'Gambrel'},{id:'mansard',label:'Mansard'}];
+const doorStylesH= [{id:'classic',label:'Classic'},{id:'arched',label:'Arched'},{id:'double',label:'Double'},{id:'sliding',label:'Sliding'},{id:'dutch',label:'Dutch'}];
+const winStyles  = [{id:'square',label:'Square'},{id:'arched',label:'Arched'},{id:'bay',label:'Bay'},{id:'porthole',label:'Porthole'},{id:'sash',label:'Sash'}];
+const gardenItems= [{id:'trees',label:'🌲 Trees'},{id:'flowers',label:'🌸 Flowers'},{id:'pond',label:'💧 Pond'},{id:'path',label:'🪨 Path'},{id:'bush',label:'🌿 Bushes'},{id:'lamppost',label:'🪔 Lamp Post'}];
+const groundCovers=[{id:'grass',label:'Lawn'},{id:'gravel',label:'Gravel'},{id:'wildflower',label:'Wildflower'},{id:'desert',label:'Desert'}];
+const extras     = [{id:'chimney',label:'🏚 Chimney'},{id:'fence',label:'🪵 Fence'},{id:'mailbox',label:'📬 Mailbox'},{id:'solar',label:'☀️ Solar Panels'}];
+const floorings  = [{id:'wood',label:'Hardwood'},{id:'tile',label:'Tiles'},{id:'carpet',label:'Carpet'},{id:'marble',label:'Marble'},{id:'concrete',label:'Concrete'}];
+const furnStyles = [{id:'cosy',label:'Cosy'},{id:'modern',label:'Modern'},{id:'rustic',label:'Rustic'},{id:'minimalist',label:'Minimalist'},{id:'luxury',label:'Luxury'}];
+const decorItems = [{id:'plants',label:'🪴 Plants'},{id:'art',label:'🖼️ Wall Art'},{id:'rug',label:'🟫 Rug'},{id:'bookshelf',label:'📚 Bookshelf'},{id:'fireplace',label:'🔥 Fireplace'},{id:'piano',label:'🎹 Piano'}];
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function darken(hex,amt){
+  let c=hex.replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');
+  const n=parseInt(c,16),cl=v=>Math.max(0,Math.min(255,Math.round(v*(1-amt))));
+  return '#'+[cl((n>>16)&255),cl((n>>8)&255),cl(n&255)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function lighten(hex,amt){
+  let c=hex.replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');
+  const n=parseInt(c,16),cl=v=>Math.max(0,Math.min(255,Math.round(v+(255-v)*amt)));
+  return '#'+[cl((n>>16)&255),cl((n>>8)&255),cl(n&255)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────
+let currentTab=0;
+function switchTab(i){
+  currentTab=i;
+  document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',i===j));
+  document.querySelectorAll('.tab-panel').forEach((p,j)=>p.classList.toggle('active',i===j));
+  const titles=['Exterior Preview','Doors & Windows','Garden Preview','Interior Preview'];
+  document.getElementById('preview-title').textContent=titles[i];
+  const showInt=i===3;
+  document.getElementById('house-svg').style.display=showInt?'none':'block';
+  document.getElementById('interior-svg').style.display=showInt?'block':'none';
+  if(showInt) renderInterior(); else renderHouse();
+}
+
+// ── House render ──────────────────────────────────────────────────────
+function renderHouse(){
+  const wc=house.wallColor,rc=house.roofColor;
+  const wall=document.getElementById('h-wall'),floor2=document.getElementById('h-floor2');
+  const roof=document.getElementById('h-roof'),roof2=document.getElementById('h-roof2');
+  let wx=68,wy=88,ww=132,wh=76;
+  if(house.style==='modern')    {wx=56;wy=76;ww=156;wh=88;}
+  else if(house.style==='bungalow') {wx=50;wy=96;ww=168;wh=68;}
+  else if(house.style==='victorian'){wx=68;wy=84;ww=132;wh=80;}
+  else if(house.style==='castle')   {wx=64;wy=82;ww=140;wh=82;}
+  const two=house.floors===2, f2y=wy-46, cx=wx+ww/2;
+  wall.setAttribute('x',wx);wall.setAttribute('y',wy);wall.setAttribute('width',ww);wall.setAttribute('height',wh);wall.setAttribute('fill',wc);
+  floor2.setAttribute('x',wx+10);floor2.setAttribute('y',f2y);floor2.setAttribute('width',ww-20);floor2.setAttribute('height',50);
+  floor2.setAttribute('fill',darken(wc,0.12));floor2.setAttribute('opacity',two?'1':'0');
+  let pts='';
+  if(house.roofShape==='gable')   pts=`${wx-12},${wy} ${cx},${wy-48} ${wx+ww+12},${wy}`;
+  else if(house.roofShape==='hip') pts=`${wx},${wy} ${wx+20},${wy-44} ${wx+ww-20},${wy-44} ${wx+ww},${wy}`;
+  else if(house.roofShape==='flat') pts=`${wx-6},${wy} ${wx+ww+6},${wy} ${wx+ww+6},${wy+8} ${wx-6},${wy+8}`;
+  else if(house.roofShape==='gambrel') pts=`${wx-12},${wy} ${wx+16},${wy-30} ${cx},${wy-52} ${wx+ww-16},${wy-30} ${wx+ww+12},${wy}`;
+  else if(house.roofShape==='mansard') pts=`${wx-12},${wy} ${wx+22},${wy-26} ${wx+22},${wy-44} ${wx+ww-22},${wy-44} ${wx+ww-22},${wy-26} ${wx+ww+12},${wy}`;
+  roof.setAttribute('points',pts);roof.setAttribute('fill',rc);
+  if(two){
+    let p2='';
+    if(house.roofShape==='gable') p2=`${wx+10},${f2y} ${cx},${f2y-36} ${wx+ww-10},${f2y}`;
+    else p2=`${wx+10},${f2y} ${cx},${f2y-34} ${wx+ww-10},${f2y}`;
+    roof2.setAttribute('points',p2);roof2.setAttribute('fill',darken(rc,0.12));roof2.setAttribute('opacity','1');
+  } else { roof2.setAttribute('opacity','0'); }
+  renderMaterialTex(wx,wy,ww,wh,wc,two,f2y);
+  // Chimney
+  document.getElementById('chimney-group').innerHTML=house.chimney
+    ?`<rect x="${wx+22}" y="${wy-42}" width="15" height="36" rx="3" fill="#616161"/><rect x="${wx+18}" y="${wy-42}" width="23" height="6" rx="2" fill="#424242"/><ellipse cx="${wx+30}" cy="${wy-45}" rx="4" ry="2.5" fill="#9E9E9E" opacity="0.45"/>`:'';
+  // Accessories
+  let acc='';
+  if(house.solar){const sy=house.roofShape==='flat'?wy-4:wy-8;acc+=`<rect x="${cx-26}" y="${sy}" width="20" height="11" rx="2" fill="#29B6F6" opacity="0.85"/><rect x="${cx+6}" y="${sy}" width="20" height="11" rx="2" fill="#29B6F6" opacity="0.85"/><line x1="${cx-26}" y1="${sy+5.5}" x2="${cx-6}" y2="${sy+5.5}" stroke="#0277BD" stroke-width="1"/><line x1="${cx-16}" y1="${sy}" x2="${cx-16}" y2="${sy+11}" stroke="#0277BD" stroke-width="1"/><line x1="${cx+6}" y1="${sy+5.5}" x2="${cx+26}" y2="${sy+5.5}" stroke="#0277BD" stroke-width="1"/><line x1="${cx+16}" y1="${sy}" x2="${cx+16}" y2="${sy+11}" stroke="#0277BD" stroke-width="1"/>`;}
+  if(house.mailbox)acc+=`<rect x="${wx+ww+8}" y="136" width="14" height="10" rx="3" fill="#546E7A"/><rect x="${wx+ww+11}" y="129" width="2" height="9" fill="#455A64"/><rect x="${wx+ww+7}" y="137" width="16" height="2" fill="#455A64"/>`;
+  document.getElementById('accessory-group').innerHTML=acc;
+  document.getElementById('door-group').innerHTML=buildDoor(wx,wy,ww,wh);
+  document.getElementById('window-group').innerHTML=buildWindows(wx,wy,ww,wh,two,f2y);
+  if(house.style==='castle'){
+    const cr=[wx,wx+18,wx+36,wx+54,wx+72,wx+90,wx+108,wx+126].map(bx=>`<rect x="${bx}" y="${wy-16}" width="14" height="18" rx="1" fill="${rc}"/>`).join('');
+    document.getElementById('material-group').innerHTML+=cr;
+  }
+  renderGarden(wx,ww);
+  document.getElementById('stat-style').textContent=styles.find(s=>s.id===house.style)?.label||'';
+  document.getElementById('stat-floors').textContent=house.floors;
+  document.getElementById('stat-mat').textContent=materials.find(m=>m.id===house.material)?.label||'';
+  const gArr=[...house.garden].map(g=>gardenItems.find(i=>i.id===g)?.label.split(' ')[1]||g);
+  document.getElementById('stat-garden').textContent=gArr.length?gArr.join(', '):'None';
+}
+
+function renderMaterialTex(wx,wy,ww,wh,wc,two,f2y){
+  const mg=document.getElementById('material-group');
+  const dk=darken(wc,0.22);
+  let html='';
+  if(house.material==='brick'){
+    const draw=(bwx,bwy,bww,bwh)=>{const rows=Math.ceil(bwh/10);for(let r=0;r<rows;r++){const off=r%2?14:0;for(let bx=bwx-off;bx<bwx+bww;bx+=28){const by=bwy+r*10;if(by+8>bwy+bwh)continue;html+=`<rect x="${bx+1}" y="${by+1}" width="26" height="8" rx="1" fill="none" stroke="${dk}" stroke-width="0.8" opacity="0.32"/>`;}}};
+    draw(wx,wy,ww,wh);if(two)draw(wx+10,f2y,ww-20,50);
+  } else if(house.material==='wood'){
+    for(let p=0;p<Math.ceil(wh/8);p++) html+=`<rect x="${wx}" y="${wy+p*8}" width="${ww}" height="1.5" fill="${dk}" opacity="0.2"/>`;
+    if(two) for(let p=0;p<7;p++) html+=`<rect x="${wx+10}" y="${f2y+p*8}" width="${ww-20}" height="1.5" fill="${dk}" opacity="0.2"/>`;
+  } else if(house.material==='stone'){
+    const st=[{x:4,y:6,w:20,h:14},{x:26,y:4,w:16,h:16},{x:44,y:8,w:18,h:12},{x:64,y:5,w:14,h:15},{x:80,y:7,w:22,h:13},{x:104,y:6,w:18,h:14},{x:6,y:24,w:14,h:12},{x:22,y:22,w:20,h:14},{x:44,y:24,w:16,h:12},{x:62,y:22,w:20,h:14},{x:84,y:24,w:14,h:12},{x:100,y:23,w:22,h:13}];
+    st.forEach(s=>{html+=`<rect x="${wx+s.x}" y="${wy+s.y}" width="${Math.min(s.w,ww-s.x-2)}" height="${s.h}" rx="3" fill="none" stroke="${dk}" stroke-width="0.9" opacity="0.28"/>`;});
+  } else if(house.material==='log'){
+    for(let p=0;p<Math.ceil(wh/10);p++){const lc=p%2?darken(wc,0.08):lighten(wc,0.08);html+=`<rect x="${wx}" y="${wy+p*10}" width="${ww}" height="10" fill="${lc}" opacity="0.22"/><rect x="${wx}" y="${wy+p*10+9}" width="${ww}" height="1.5" fill="${dk}" opacity="0.18"/>`;}
+  }
+  mg.innerHTML=html;
+}
+
+function buildDoor(wx,wy,ww,wh){
+  const cx=wx+ww/2-13,by=wy+wh,dh=37,dw=26,dy=by-dh,dc=house.doorColor,dk=darken(dc,0.28);
+  if(house.doorStyle==='classic') return `<rect x="${cx}" y="${dy}" width="${dw}" height="${dh}" rx="3" fill="${dc}"/><circle cx="${cx+dw-6}" cy="${dy+dh/2}" r="2.5" fill="#FFD54F"/><rect x="${cx+3}" y="${dy+3}" width="${dw-6}" height="${dh/2-2}" rx="2" fill="${dk}" opacity="0.16"/>`;
+  if(house.doorStyle==='arched') return `<path d="M${cx},${by} L${cx},${dy+10} Q${cx+dw/2},${dy-8} ${cx+dw},${dy+10} L${cx+dw},${by} Z" fill="${dc}"/><circle cx="${cx+dw-6}" cy="${dy+dh/2}" r="2.5" fill="#FFD54F"/>`;
+  if(house.doorStyle==='double') return `<rect x="${cx-7}" y="${dy}" width="${dw+14}" height="${dh}" rx="3" fill="${dc}"/><line x1="${cx+7}" y1="${dy}" x2="${cx+7}" y2="${by}" stroke="${dk}" stroke-width="1.8" opacity="0.4"/><circle cx="${cx+3}" cy="${dy+dh/2}" r="2" fill="#FFD54F"/><circle cx="${cx+12}" cy="${dy+dh/2}" r="2" fill="#FFD54F"/>`;
+  if(house.doorStyle==='sliding') return `<rect x="${cx}" y="${dy}" width="${dw}" height="${dh}" rx="2" fill="#B3E5FC" opacity="0.75"/><rect x="${cx}" y="${dy}" width="${dw}" height="${dh}" rx="2" fill="none" stroke="${dc}" stroke-width="2.5"/><line x1="${cx+13}" y1="${dy}" x2="${cx+13}" y2="${by}" stroke="${dc}" stroke-width="1.2"/><rect x="${cx+7}" y="${dy+dh/2-3}" width="10" height="5" rx="2" fill="${dc}"/>`;
+  if(house.doorStyle==='dutch') return `<rect x="${cx}" y="${dy}" width="${dw}" height="${dh}" rx="3" fill="${dc}"/><line x1="${cx}" y1="${dy+dh/2}" x2="${cx+dw}" y2="${dy+dh/2}" stroke="${dk}" stroke-width="2" opacity="0.5"/><circle cx="${cx+dw-6}" cy="${dy+dh/2-5}" r="2.5" fill="#FFD54F"/>`;
+  return '';
+}
+
+function buildWindows(wx,wy,ww,wh,two,f2y){
+  const wc2='#B3E5FC',wb='#0277BD';
+  const dW=(x,y)=>{
+    if(house.windowStyle==='square') return `<rect x="${x}" y="${y}" width="21" height="19" rx="2" fill="${wc2}"/><rect x="${x}" y="${y}" width="21" height="19" rx="2" fill="none" stroke="${wb}" stroke-width="1.5"/><line x1="${x+10.5}" y1="${y}" x2="${x+10.5}" y2="${y+19}" stroke="white" stroke-width="1.2"/><line x1="${x}" y1="${y+9.5}" x2="${x+21}" y2="${y+9.5}" stroke="white" stroke-width="1.2"/>`;
+    if(house.windowStyle==='arched') return `<path d="M${x},${y+19} L${x},${y+8} Q${x+10.5},${y-4} ${x+21},${y+8} L${x+21},${y+19} Z" fill="${wc2}"/><path d="M${x},${y+19} L${x},${y+8} Q${x+10.5},${y-4} ${x+21},${y+8} L${x+21},${y+19} Z" fill="none" stroke="${wb}" stroke-width="1.5"/>`;
+    if(house.windowStyle==='bay') return `<rect x="${x-5}" y="${y}" width="31" height="21" rx="2" fill="${wc2}"/><rect x="${x-5}" y="${y}" width="31" height="21" rx="2" fill="none" stroke="${wb}" stroke-width="1.5"/><line x1="${x+5}" y1="${y}" x2="${x+5}" y2="${y+21}" stroke="white" stroke-width="1.2"/><line x1="${x+15}" y1="${y}" x2="${x+15}" y2="${y+21}" stroke="white" stroke-width="1.2"/>`;
+    if(house.windowStyle==='porthole') return `<circle cx="${x+10}" cy="${y+10}" r="10" fill="${wc2}"/><circle cx="${x+10}" cy="${y+10}" r="10" fill="none" stroke="${wb}" stroke-width="2"/><line x1="${x+2}" y1="${y+10}" x2="${x+18}" y2="${y+10}" stroke="white" stroke-width="1.2"/><line x1="${x+10}" y1="${y+2}" x2="${x+10}" y2="${y+18}" stroke="white" stroke-width="1.2"/>`;
+    if(house.windowStyle==='sash') return `<rect x="${x}" y="${y}" width="21" height="19" rx="2" fill="${wc2}"/><rect x="${x}" y="${y}" width="21" height="19" rx="2" fill="none" stroke="${wb}" stroke-width="1.5"/><rect x="${x}" y="${y+9}" width="21" height="10" fill="${wc2}" opacity="0.5"/><line x1="${x}" y1="${y+9}" x2="${x+21}" y2="${y+9}" stroke="${wb}" stroke-width="2"/>`;
+    return '';
+  };
+  let html=dW(wx+13,wy+15)+dW(wx+ww-34,wy+15);
+  if(two) html+=dW(wx+24,f2y+11)+dW(wx+ww-45,f2y+11);
+  return html;
+}
+
+function renderGarden(wx,ww){
+  const gColors={grass:'#A5D6A7',gravel:'#BCAAA4',wildflower:'#C8E6C9',desert:'#FFE082'};
+  document.getElementById('ground-rect').setAttribute('fill',gColors[house.groundCover]||'#A5D6A7');
+  let html='';
+  const g=house.garden;
+  if(g.has('trees')){html+=`<rect x="16" y="116" width="9" height="38" rx="3" fill="#5D4037"/><ellipse cx="20" cy="108" rx="17" ry="19" fill="#2E7D32"/><ellipse cx="20" cy="100" rx="11" ry="13" fill="#388E3C"/><rect x="${wx+ww+15}" y="116" width="9" height="38" rx="3" fill="#5D4037"/><ellipse cx="${wx+ww+20}" cy="108" rx="17" ry="19" fill="#2E7D32"/><ellipse cx="${wx+ww+20}" cy="100" rx="11" ry="13" fill="#388E3C"/>`;}
+  if(g.has('flowers')){const fp=[22,36,50,186,200,214,228,242],fc=['#FF4081','#FF6D00','#FFD600','#E91E63','#7B1FA2','#FF7043','#F06292','#FFCA28'];fp.forEach((fx,i)=>{html+=`<circle cx="${fx}" cy="${150+i%3*2}" r="4.5" fill="${fc[i%fc.length]}" opacity="0.9"/><rect x="${fx-1}" y="${154+i%3*2}" width="2" height="7" fill="#4CAF50"/>`;});}
+  if(g.has('pond')){html+=`<ellipse cx="134" cy="170" rx="25" ry="9" fill="#4FC3F7" opacity="0.75"/><ellipse cx="134" cy="170" rx="25" ry="9" fill="none" stroke="#0288D1" stroke-width="1.5" opacity="0.55"/><ellipse cx="128" cy="168" rx="5" ry="3" fill="white" opacity="0.28"/>`;}
+  if(g.has('path')){html+=`<polygon points="110,152 158,152 167,195 101,195" fill="#BCAAA4"/><line x1="120" y1="167" x2="148" y2="167" stroke="#A1887F" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>`;}
+  if(g.has('bush')){html+=`<ellipse cx="${wx-11}" cy="153" rx="12" ry="9" fill="#558B2F"/><ellipse cx="${wx-5}" cy="150" rx="9" ry="7" fill="#689F38"/><ellipse cx="${wx+ww+11}" cy="153" rx="12" ry="9" fill="#558B2F"/><ellipse cx="${wx+ww+5}" cy="150" rx="9" ry="7" fill="#689F38"/>`;}
+  if(g.has('lamppost')){html+=`<rect x="${wx-34}" y="112" width="4" height="42" rx="2" fill="#546E7A"/><rect x="${wx-40}" y="107" width="15" height="9" rx="3" fill="#546E7A"/><circle cx="${wx-33}" cy="109" r="5" fill="#FFD54F" opacity="0.85"/>`;}
+  if(house.fence){for(let fx=10;fx<258;fx+=16){html+=`<rect x="${fx}" y="152" width="4" height="17" rx="2" fill="#8D6E63"/><polygon points="${fx},152 ${fx+2},146 ${fx+4},152" fill="#8D6E63"/>`;}html+=`<rect x="10" y="156" width="248" height="3.5" rx="1.5" fill="#795548"/><rect x="10" y="162" width="248" height="3.5" rx="1.5" fill="#795548"/>`;}
+  if(house.groundCover==='wildflower'){const fp=[18,32,46,60,185,199,213,227,241];fp.forEach((fx,i)=>{const cols=['#FF4081','#FF6D00','#FFD600','#E91E63','#7B1FA2'];html+=`<circle cx="${fx}" cy="${161+i%3*3}" r="3.5" fill="${cols[i%5]}" opacity="0.82"/>`;});}
+  document.getElementById('garden-group').innerHTML=html;
+}
+
+// ── Interior render ───────────────────────────────────────────────────
+function renderInterior(){
+  const wc=house.intWallColor,fc=house.furnColor;
+  document.getElementById('int-wall-rect').setAttribute('fill',wc);
+  const floorColors={wood:'#BCAAA4',tile:'#CFD8DC',carpet:'#B39DDB',marble:'#E0E0E0',concrete:'#9E9E9E'};
+  document.getElementById('int-floor-rect').setAttribute('fill',floorColors[house.flooring]||'#BCAAA4');
+  let fl='';
+  if(house.flooring==='wood'){for(let i=0;i<4;i++)fl+=`<line x1="0" y1="${164+i*7}" x2="268" y2="${164+i*7}" stroke="${darken(floorColors.wood,0.15)}" stroke-width="1" opacity="0.45"/>`;for(let i=0;i<8;i++)fl+=`<line x1="${i*38}" y1="164" x2="${i*38+20}" y2="195" stroke="${darken(floorColors.wood,0.15)}" stroke-width="0.8" opacity="0.28"/>`;}
+  else if(house.flooring==='tile'){for(let tx=0;tx<268;tx+=27)for(let ty=164;ty<195;ty+=14)fl+=`<rect x="${tx+1}" y="${ty+1}" width="26" height="13" rx="1" fill="none" stroke="${darken(floorColors.tile,0.15)}" stroke-width="0.8" opacity="0.38"/>`;}
+  else if(house.flooring==='marble'){fl+=`<path d="M20,172 Q80,166 134,174 Q194,182 250,170" stroke="${darken(floorColors.marble,0.15)}" stroke-width="1.5" fill="none" opacity="0.32"/><path d="M40,184 Q115,179 172,186 Q212,190 260,182" stroke="${darken(floorColors.marble,0.15)}" stroke-width="1" fill="none" opacity="0.22"/>`;}
+  let fhtml='';
+  const fs=house.furnitureStyle;
+  if(fs==='cosy'||fs==='rustic'){
+    fhtml+=`<rect x="36" y="134" width="96" height="28" rx="6" fill="${fc}"/><rect x="36" y="127" width="96" height="12" rx="5" fill="${darken(fc,0.1)}"/><rect x="29" y="132" width="12" height="32" rx="4" fill="${darken(fc,0.1)}"/><rect x="128" y="132" width="12" height="32" rx="4" fill="${darken(fc,0.1)}"/>`;
+    fhtml+=`<rect x="55" y="150" width="56" height="15" rx="3" fill="${darken(fc,0.22)}"/>`;
+    fhtml+=`<rect x="166" y="136" width="44" height="25" rx="5" fill="${lighten(fc,0.1)}"/><rect x="166" y="130" width="44" height="10" rx="4" fill="${darken(fc,0.08)}"/><rect x="160" y="134" width="10" height="28" rx="4" fill="${darken(fc,0.08)}"/><rect x="206" y="134" width="10" height="28" rx="4" fill="${darken(fc,0.08)}"/>`;
+  } else if(fs==='modern'||fs==='minimalist'){
+    fhtml+=`<rect x="38" y="138" width="92" height="23" rx="3" fill="${fc}"/><rect x="38" y="130" width="92" height="10" rx="2" fill="${darken(fc,0.12)}"/><rect x="34" y="136" width="8" height="27" rx="2" fill="${darken(fc,0.12)}"/><rect x="128" y="136" width="8" height="27" rx="2" fill="${darken(fc,0.12)}"/>`;
+    fhtml+=`<rect x="58" y="152" width="52" height="11" rx="1" fill="${darken(fc,0.2)}"/>`;
+    fhtml+=`<rect x="168" y="138" width="42" height="23" rx="2" fill="${lighten(fc,0.08)}"/><rect x="168" y="130" width="42" height="10" rx="2" fill="${darken(fc,0.1)}"/>`;
+  } else if(fs==='luxury'){
+    fhtml+=`<rect x="34" y="131" width="104" height="30" rx="8" fill="${fc}"/><rect x="34" y="123" width="104" height="14" rx="6" fill="${darken(fc,0.08)}"/><rect x="26" y="129" width="14" height="34" rx="6" fill="${darken(fc,0.08)}"/><rect x="136" y="129" width="14" height="34" rx="6" fill="${darken(fc,0.08)}"/>`;
+    fhtml+=`<rect x="52" y="150" width="70" height="13" rx="4" fill="${darken(fc,0.22)}"/><circle cx="87" cy="150" r="3" fill="#FFD54F" opacity="0.7"/>`;
+    fhtml+=`<rect x="164" y="131" width="50" height="30" rx="8" fill="${lighten(fc,0.1)}"/><rect x="164" y="123" width="50" height="14" rx="6" fill="${darken(fc,0.08)}"/>`;
+  }
+  fhtml+=`<rect x="84" y="78" width="100" height="56" rx="4" fill="${darken(wc,0.1)}"/><rect x="88" y="82" width="92" height="48" rx="2" fill="#1A1A2E"/><rect x="126" y="134" width="16" height="6" rx="2" fill="${darken(wc,0.18)}"/>`;
+  let dhtml='';
+  const dec=house.decor;
+  if(dec.has('plants')) dhtml+=`<rect x="226" y="126" width="8" height="20" rx="2" fill="#795548"/><rect x="220" y="118" width="20" height="10" rx="2" fill="#795548"/><ellipse cx="230" cy="112" rx="13" ry="11" fill="#4CAF50"/><ellipse cx="221" cy="116" rx="7" ry="7" fill="#66BB6A"/><ellipse cx="239" cy="116" rx="7" ry="7" fill="#66BB6A"/>`;
+  if(dec.has('art')) dhtml+=`<rect x="12" y="64" width="34" height="26" rx="3" fill="${lighten(wc,0.3)}" stroke="${darken(wc,0.3)}" stroke-width="1.5"/><ellipse cx="29" cy="75" rx="7" ry="5" fill="#FF7043" opacity="0.6"/><rect x="12" y="102" width="34" height="20" rx="3" fill="${lighten(wc,0.3)}" stroke="${darken(wc,0.3)}" stroke-width="1.5"/>`;
+  if(dec.has('rug')) dhtml+=`<ellipse cx="96" cy="161" rx="52" ry="7" fill="${lighten(fc,0.3)}" opacity="0.62"/><ellipse cx="96" cy="161" rx="52" ry="7" fill="none" stroke="${fc}" stroke-width="1.5" opacity="0.38"/>`;
+  if(dec.has('bookshelf')) {dhtml+=`<rect x="9" y="94" width="26" height="52" rx="3" fill="${darken(fc,0.18)}"/>`;['#E53935','#1565C0','#2E7D32','#F57F17','#6A1B9A','#00838F'].forEach((bc,bi)=>{dhtml+=`<rect x="12" y="${98+bi*8}" width="20" height="6" rx="1" fill="${bc}"/>`;});}
+  if(dec.has('fireplace')) dhtml+=`<rect x="105" y="142" width="58" height="24" rx="3" fill="#5D4037"/><rect x="111" y="146" width="46" height="16" rx="2" fill="#1A1A1A"/><ellipse cx="134" cy="157" rx="13" ry="5" fill="#FF5722" opacity="0.8"/><ellipse cx="134" cy="154" rx="9" ry="4" fill="#FF9800" opacity="0.8"/><ellipse cx="134" cy="151" rx="5" ry="3" fill="#FFC107" opacity="0.8"/><rect x="101" y="138" width="66" height="6" rx="2" fill="${darken(fc,0.1)}"/>`;
+  if(dec.has('piano')) dhtml+=`<rect x="190" y="128" width="58" height="36" rx="3" fill="#1A1A1A"/><rect x="194" y="132" width="50" height="22" rx="2" fill="#2C2C2C"/><rect x="198" y="154" width="5" height="12" rx="1" fill="#1A1A1A"/><rect x="239" y="154" width="5" height="12" rx="1" fill="#1A1A1A"/>`;
+  document.getElementById('furniture-group').innerHTML=fl+fhtml;
+  document.getElementById('decor-group').innerHTML=dhtml;
+}
+
+// ── Mini avatar for house screen ──────────────────────────────────────
+function renderMiniAvatar(){
+  const svg=document.getElementById('mini-avatar');
+  const s=avatar.skin,h=avatar.hairColor,o=avatar.outfitColor;
+  svg.innerHTML=`<rect x="40" y="80" width="80" height="90" rx="6" fill="${o}"/><rect x="25" y="82" width="16" height="50" rx="8" fill="${o}"/><rect x="119" y="82" width="16" height="50" rx="8" fill="${o}"/><rect x="52" y="160" width="18" height="28" rx="6" fill="#5D4037"/><rect x="90" y="160" width="18" height="28" rx="6" fill="#5D4037"/><rect x="55" y="74" width="50" height="16" rx="4" fill="${s}"/><ellipse cx="80" cy="58" rx="26" ry="24" fill="${s}"/><ellipse cx="70" cy="55" rx="3" ry="3.5" fill="#3E2723"/><ellipse cx="90" cy="55" rx="3" ry="3.5" fill="#3E2723"/><path d="M72,64 Q80,72 88,64" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="80" cy="46" rx="26" ry="12" fill="${h}"/><rect x="54" y="44" width="9" height="14" rx="4" fill="${h}"/><rect x="97" y="44" width="9" height="14" rx="4" fill="${h}"/>`;
+}
+
+// ── House UI builders ─────────────────────────────────────────────────
+function buildColorGrid(id,colors,key,onChange){
+  const grid=document.getElementById(id);
+  if(!grid)return;
+  grid.innerHTML='';
+  colors.forEach(c=>{
+    const sw=document.createElement('div');
+    sw.className='color-swatch'+(house[key]===c?' selected':'');
+    sw.style.cssText=`background:${c};box-shadow:0 2px 6px ${c}55;${c==='#FFFFFF'?'border:3px solid #DDD;':''}`;
+    sw.addEventListener('click',()=>{
+      house[key]=c;
+      if(key==='wallColor') house._wallMatchesFav=false;
+      grid.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      if(onChange) onChange(); else renderHouse();
+    });
+    grid.appendChild(sw);
+  });
+}
+function refreshWallColorGrid(){
+  const grid=document.getElementById('wall-color-grid');
+  if(!grid)return;
+  grid.querySelectorAll('.color-swatch').forEach(sw=>{
+    sw.classList.toggle('selected', sw.style.background===house.wallColor || sw.title===house.wallColor);
+  });
+}
+function buildOptGrid(id,items,key,iconFn,onChange){
+  const grid=document.getElementById(id);
+  if(!grid)return;
+  grid.innerHTML='';
+  items.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn'+(house[key]===item.id?' selected':'');
+    btn.innerHTML=(iconFn?iconFn(item.id):'')+`<span>${item.label}</span>`;
+    btn.addEventListener('click',()=>{
+      house[key]=item.id;
+      grid.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      if(onChange) onChange(); else renderHouse();
+    });
+    grid.appendChild(btn);
+  });
+}
+function buildToggleGrid(id,items,stateSet){
+  const grid=document.getElementById(id);
+  if(!grid)return;
+  grid.innerHTML='';
+  items.forEach(item=>{
+    const btn=document.createElement('button');
+    const on=stateSet instanceof Set?stateSet.has(item.id):!!house[item.id];
+    btn.className='toggle-btn'+(on?' on':'');
+    btn.innerHTML=`<span class="toggle-dot"></span>${item.label}`;
+    btn.addEventListener('click',()=>{
+      if(stateSet instanceof Set){stateSet.has(item.id)?stateSet.delete(item.id):stateSet.add(item.id);btn.classList.toggle('on',stateSet.has(item.id));}
+      else{house[item.id]=!house[item.id];btn.classList.toggle('on',house[item.id]);}
+      currentTab===3?renderInterior():renderHouse();
+    });
+    grid.appendChild(btn);
+  });
+}
+
+// ── House icons ───────────────────────────────────────────────────────
+const hIcons={
+  style:{cottage:`<svg width="36" height="30" viewBox="0 0 36 30"><rect x="7" y="14" width="22" height="14" rx="2" fill="currentColor"/><polygon points="3,16 18,4 33,16" fill="currentColor" opacity="0.6"/></svg>`,modern:`<svg width="36" height="30" viewBox="0 0 36 30"><rect x="3" y="8" width="30" height="20" rx="2" fill="currentColor"/><rect x="3" y="6" width="30" height="4" rx="1" fill="currentColor" opacity="0.6"/></svg>`,victorian:`<svg width="36" height="30" viewBox="0 0 36 30"><rect x="8" y="14" width="20" height="14" rx="2" fill="currentColor"/><polygon points="3,16 18,2 33,16" fill="currentColor" opacity="0.6"/><polygon points="11,8 18,0 25,8" fill="currentColor" opacity="0.4"/></svg>`,bungalow:`<svg width="36" height="30" viewBox="0 0 36 30"><rect x="2" y="16" width="32" height="12" rx="2" fill="currentColor"/><polygon points="0,18 18,7 36,18" fill="currentColor" opacity="0.6"/></svg>`,castle:`<svg width="36" height="30" viewBox="0 0 36 30"><rect x="6" y="10" width="24" height="18" rx="1" fill="currentColor"/><rect x="6" y="6" width="5" height="6" rx="1" fill="currentColor" opacity="0.7"/><rect x="15.5" y="6" width="5" height="6" rx="1" fill="currentColor" opacity="0.7"/><rect x="25" y="6" width="5" height="6" rx="1" fill="currentColor" opacity="0.7"/></svg>`},
+  roof:{gable:`<svg width="36" height="22" viewBox="0 0 36 22"><polygon points="1,20 18,2 35,20" fill="currentColor" opacity="0.7"/></svg>`,hip:`<svg width="36" height="22" viewBox="0 0 36 22"><polygon points="1,20 8,4 28,4 35,20" fill="currentColor" opacity="0.7"/></svg>`,flat:`<svg width="36" height="22" viewBox="0 0 36 22"><rect x="1" y="8" width="34" height="8" rx="2" fill="currentColor" opacity="0.7"/></svg>`,gambrel:`<svg width="36" height="22" viewBox="0 0 36 22"><polygon points="1,20 8,12 14,2 22,2 28,12 35,20" fill="currentColor" opacity="0.7"/></svg>`,mansard:`<svg width="36" height="22" viewBox="0 0 36 22"><polygon points="1,20 8,8 10,2 26,2 28,8 35,20" fill="currentColor" opacity="0.7"/></svg>`},
+  door:{classic:`<svg width="24" height="34" viewBox="0 0 24 34"><rect x="2" y="2" width="20" height="30" rx="3" fill="currentColor"/><circle cx="17" cy="17" r="2.5" fill="currentColor" opacity="0.35"/></svg>`,arched:`<svg width="24" height="34" viewBox="0 0 24 34"><path d="M2,33 L2,12 Q12,0 22,12 L22,33 Z" fill="currentColor"/></svg>`,double:`<svg width="34" height="34" viewBox="0 0 34 34"><rect x="1" y="2" width="32" height="30" rx="3" fill="currentColor"/><line x1="17" y1="2" x2="17" y2="32" stroke="currentColor" stroke-width="2" opacity="0.35"/></svg>`,sliding:`<svg width="24" height="34" viewBox="0 0 24 34"><rect x="2" y="2" width="20" height="30" rx="2" fill="currentColor" opacity="0.55"/><rect x="2" y="2" width="20" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,dutch:`<svg width="24" height="34" viewBox="0 0 24 34"><rect x="2" y="2" width="20" height="30" rx="3" fill="currentColor"/><line x1="2" y1="17" x2="22" y2="17" stroke="currentColor" stroke-width="2" opacity="0.35"/></svg>`},
+  window:{square:`<svg width="28" height="26" viewBox="0 0 28 26"><rect x="2" y="2" width="24" height="22" rx="2" fill="currentColor" opacity="0.7"/><line x1="14" y1="2" x2="14" y2="24" stroke="currentColor" stroke-width="1.5" opacity="0.45"/><line x1="2" y1="13" x2="26" y2="13" stroke="currentColor" stroke-width="1.5" opacity="0.45"/></svg>`,arched:`<svg width="28" height="28" viewBox="0 0 28 28"><path d="M2,27 L2,12 Q14,0 26,12 L26,27 Z" fill="currentColor" opacity="0.7"/></svg>`,bay:`<svg width="36" height="26" viewBox="0 0 36 26"><rect x="1" y="2" width="34" height="22" rx="2" fill="currentColor" opacity="0.7"/><line x1="13" y1="2" x2="13" y2="24" stroke="currentColor" stroke-width="1.5" opacity="0.45"/><line x1="23" y1="2" x2="23" y2="24" stroke="currentColor" stroke-width="1.5" opacity="0.45"/></svg>`,porthole:`<svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="currentColor" opacity="0.7"/><line x1="4" y1="14" x2="24" y2="14" stroke="currentColor" stroke-width="1.5" opacity="0.45"/><line x1="14" y1="4" x2="14" y2="24" stroke="currentColor" stroke-width="1.5" opacity="0.45"/></svg>`,sash:`<svg width="28" height="26" viewBox="0 0 28 26"><rect x="2" y="2" width="24" height="22" rx="2" fill="currentColor" opacity="0.7"/><rect x="2" y="14" width="24" height="10" fill="currentColor" opacity="0.3"/><line x1="2" y1="14" x2="26" y2="14" stroke="currentColor" stroke-width="2" opacity="0.6"/></svg>`},
+  material:{paint:`<svg width="30" height="24" viewBox="0 0 30 24"><rect x="2" y="2" width="26" height="20" rx="3" fill="currentColor" opacity="0.8"/></svg>`,brick:`<svg width="30" height="24" viewBox="0 0 30 24"><rect x="2" y="2" width="26" height="20" rx="2" fill="currentColor" opacity="0.5"/><rect x="4" y="4" width="10" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.7"/><rect x="16" y="4" width="10" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.7"/><rect x="9" y="12" width="10" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.7"/></svg>`,wood:`<svg width="30" height="24" viewBox="0 0 30 24"><rect x="2" y="2" width="26" height="20" rx="2" fill="currentColor" opacity="0.5"/><line x1="2" y1="8" x2="28" y2="8" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><line x1="2" y1="14" x2="28" y2="14" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><line x1="2" y1="20" x2="28" y2="20" stroke="currentColor" stroke-width="1.5" opacity="0.6"/></svg>`,stone:`<svg width="30" height="24" viewBox="0 0 30 24"><rect x="2" y="2" width="26" height="20" rx="2" fill="currentColor" opacity="0.5"/><rect x="3" y="3" width="12" height="8" rx="3" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/><rect x="16" y="5" width="11" height="7" rx="3" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/><rect x="3" y="13" width="8" height="7" rx="3" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/><rect x="13" y="14" width="14" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg>`,render:`<svg width="30" height="24" viewBox="0 0 30 24"><rect x="2" y="2" width="26" height="20" rx="3" fill="currentColor" opacity="0.35"/><rect x="2" y="2" width="26" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/></svg>`,log:`<svg width="30" height="24" viewBox="0 0 30 24"><rect x="2" y="2" width="26" height="6" rx="2" fill="currentColor" opacity="0.7"/><rect x="2" y="9" width="26" height="6" rx="2" fill="currentColor" opacity="0.5"/><rect x="2" y="16" width="26" height="6" rx="2" fill="currentColor" opacity="0.7"/></svg>`},
+  ground:{grass:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="8" width="30" height="10" rx="2" fill="currentColor" opacity="0.7"/><path d="M6,8 Q8,2 10,8" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13,8 Q15,1 17,8" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M20,8 Q22,3 24,8" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>`,gravel:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="8" width="30" height="10" rx="2" fill="currentColor" opacity="0.5"/><circle cx="7" cy="13" r="2" fill="currentColor" opacity="0.6"/><circle cx="14" cy="11" r="2.5" fill="currentColor" opacity="0.6"/><circle cx="22" cy="14" r="2" fill="currentColor" opacity="0.6"/></svg>`,wildflower:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="10" width="30" height="8" rx="2" fill="currentColor" opacity="0.6"/><circle cx="7" cy="9" r="3" fill="currentColor" opacity="0.8"/><circle cx="15" cy="8" r="3" fill="currentColor" opacity="0.8"/><circle cx="23" cy="9" r="3" fill="currentColor" opacity="0.8"/></svg>`,desert:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="8" width="30" height="10" rx="2" fill="currentColor" opacity="0.6"/><path d="M8,8 L8,3 L6,5 M8,3 L10,5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M20,8 L20,2 L18,4 M20,2 L22,4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>`},
+  floor:{wood:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="0" width="30" height="18" rx="2" fill="currentColor" opacity="0.5"/><line x1="0" y1="6" x2="30" y2="6" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><line x1="0" y1="12" x2="30" y2="12" stroke="currentColor" stroke-width="1.5" opacity="0.6"/></svg>`,tile:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="0" width="30" height="18" rx="2" fill="currentColor" opacity="0.4"/><rect x="1" y="1" width="13" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/><rect x="16" y="1" width="13" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/><rect x="1" y="10" width="13" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/><rect x="16" y="10" width="13" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/></svg>`,carpet:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="0" width="30" height="18" rx="2" fill="currentColor" opacity="0.6"/><rect x="3" y="3" width="24" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/></svg>`,marble:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="0" width="30" height="18" rx="2" fill="currentColor" opacity="0.5"/><path d="M4,12 Q10,6 18,10 Q24,13 28,8" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.5"/></svg>`,concrete:`<svg width="30" height="18" viewBox="0 0 30 18"><rect x="0" y="0" width="30" height="18" rx="2" fill="currentColor" opacity="0.5"/><line x1="0" y1="9" x2="30" y2="9" stroke="currentColor" stroke-width="0.8" opacity="0.3"/><line x1="15" y1="0" x2="15" y2="18" stroke="currentColor" stroke-width="0.8" opacity="0.3"/></svg>`},
+  furn:{cosy:`<svg width="36" height="22" viewBox="0 0 36 22"><rect x="2" y="8" width="32" height="12" rx="5" fill="currentColor" opacity="0.8"/><rect x="2" y="6" width="32" height="6" rx="3" fill="currentColor" opacity="0.6"/></svg>`,modern:`<svg width="36" height="22" viewBox="0 0 36 22"><rect x="2" y="10" width="32" height="10" rx="2" fill="currentColor" opacity="0.8"/><rect x="2" y="6" width="32" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>`,rustic:`<svg width="36" height="22" viewBox="0 0 36 22"><rect x="2" y="8" width="32" height="12" rx="4" fill="currentColor" opacity="0.8"/><line x1="2" y1="12" x2="34" y2="12" stroke="currentColor" stroke-width="1" opacity="0.3"/></svg>`,minimalist:`<svg width="36" height="22" viewBox="0 0 36 22"><rect x="2" y="12" width="32" height="8" rx="1" fill="currentColor" opacity="0.8"/><rect x="2" y="8" width="32" height="4" rx="1" fill="currentColor" opacity="0.45"/></svg>`,luxury:`<svg width="36" height="22" viewBox="0 0 36 22"><rect x="2" y="7" width="32" height="13" rx="6" fill="currentColor" opacity="0.8"/><rect x="2" y="5" width="32" height="7" rx="4" fill="currentColor" opacity="0.55"/><circle cx="18" cy="12" r="2.5" fill="currentColor" opacity="0.35"/></svg>`},
+};
+
+function initHouseGrids(){
+  buildColorGrid('wall-color-grid',wallColors,'wallColor');
+  buildOptGrid('material-grid',materials,'material',id=>hIcons.material[id]||'');
+  buildOptGrid('style-grid',styles,'style',id=>hIcons.style[id]||'');
+  buildOptGrid('floors-grid',[{id:1,label:'1 Floor'},{id:2,label:'2 Floors'}],'floors',n=>n.id===1
+    ?`<svg width="34" height="28" viewBox="0 0 34 28"><rect x="6" y="12" width="22" height="14" rx="2" fill="currentColor"/><polygon points="2,14 17,4 32,14" fill="currentColor" opacity="0.6"/></svg>`
+    :`<svg width="34" height="28" viewBox="0 0 34 28"><rect x="8" y="16" width="18" height="10" rx="2" fill="currentColor"/><rect x="10" y="8" width="14" height="10" rx="2" fill="currentColor" opacity="0.7"/><polygon points="6,18 17,10 28,18" fill="currentColor" opacity="0.5"/><polygon points="8,10 17,2 26,10" fill="currentColor" opacity="0.4"/></svg>`);
+  buildColorGrid('roof-color-grid',roofColors,'roofColor');
+  buildOptGrid('roof-grid',roofShapes,'roofShape',id=>hIcons.roof[id]||'');
+  buildToggleGrid('extras-grid',extras,house);
+  buildOptGrid('door-grid',doorStylesH,'doorStyle',id=>hIcons.door[id]||'');
+  buildColorGrid('door-color-grid',doorColors,'doorColor');
+  buildOptGrid('window-grid',winStyles,'windowStyle',id=>hIcons.window[id]||'');
+  buildToggleGrid('garden-grid',gardenItems,house.garden);
+  buildOptGrid('ground-grid',groundCovers,'groundCover',id=>hIcons.ground[id]||'');
+  buildColorGrid('int-wall-grid',intWallColors,'intWallColor',renderInterior);
+  buildOptGrid('floor-grid',floorings,'flooring',id=>hIcons.floor[id]||'',renderInterior);
+  buildOptGrid('furniture-grid',furnStyles,'furnitureStyle',id=>hIcons.furn[id]||'',renderInterior);
+  buildColorGrid('furn-color-grid',furnColors,'furnColor',renderInterior);
+  buildToggleGrid('decor-grid',decorItems,house.decor);
+}
+
+// ── Finish → switch to move-in screen ────────────────────────────────
+document.getElementById('finish-btn').addEventListener('click',function(){
+  this.classList.add('pop');
+  setTimeout(()=>this.classList.remove('pop'),300);
+  const name=document.getElementById('username').value.trim()||'Homeowner';
+  const all={...avatar,username:name,house:{...house,garden:[...house.garden],decor:[...house.decor]}};
+  sessionStorage.setItem('fullGameData',JSON.stringify(all));
+  document.getElementById('screen-house').classList.remove('active');
+  document.getElementById('screen-movein').classList.add('active');
+  window.scrollTo(0,0);
+  renderMoveIn(all);
+  launchConfetti();
+});
+
+// ── Move-in screen render ─────────────────────────────────────────────
+const styleNames={cottage:'Cosy Cottage',modern:'Modern',victorian:'Victorian',bungalow:'Bungalow',castle:'Mini Castle'};
+const matNames={paint:'Paint',brick:'Brick',wood:'Wood Siding',stone:'Stone',render:'Render',log:'Log Cabin'};
+const furnStyleNames={cosy:'Cosy',modern:'Modern',rustic:'Rustic',minimalist:'Minimalist',luxury:'Luxury'};
+const groundNames={grass:'Lawn',gravel:'Gravel',wildflower:'Wildflower',desert:'Desert'};
+
+function renderMoveIn(data) {
+  const h=data.house||{}, fav=data.favColor||'#FF7043';
+  applyFav(fav);
+
+  // Header
+  document.getElementById('mi-welcome').textContent=`Welcome home, ${data.username||'Homeowner'}! 🎉`;
+
+  // House SVG
+  document.getElementById('mi-house-svg-wrap').innerHTML=buildMoveInHouseSVG(h);
+
+  // Interior SVG
+  document.getElementById('mi-interior-svg-wrap').innerHTML=buildMoveInInteriorSVG(h);
+
+  // Avatar
+  document.getElementById('mi-avatar-svg').innerHTML=buildMoveInAvatarSVG(data);
+  document.getElementById('mi-avatar-name').textContent=data.username||'Homeowner';
+
+  // Stats
+  const garden=(Array.isArray(h.garden)?h.garden:[]).map(g=>({trees:'Trees',flowers:'Flowers',pond:'Pond',path:'Path',bush:'Bushes',lamppost:'Lamp Post'}[g]||g));
+  const decor=(Array.isArray(h.decor)?h.decor:[]).map(d=>({plants:'Plants',art:'Wall Art',rug:'Rug',bookshelf:'Bookshelf',fireplace:'Fireplace',piano:'Piano'}[d]||d));
+  const extras=[h.chimney&&'Chimney',h.fence&&'Fence',h.mailbox&&'Mailbox',h.solar&&'Solar'].filter(Boolean);
+  document.getElementById('mi-stat-style').textContent=styleNames[h.style]||h.style||'—';
+  document.getElementById('mi-stat-floors').textContent=(h.floors||1)+' floor'+(h.floors===2?'s':'');
+  document.getElementById('mi-stat-mat').textContent=matNames[h.material]||h.material||'—';
+  document.getElementById('mi-stat-roof').textContent=(h.roofShape||'gable').charAt(0).toUpperCase()+(h.roofShape||'gable').slice(1)+' roof';
+  document.getElementById('mi-stat-garden').textContent=garden.length?garden.join(', '):'None';
+  document.getElementById('mi-stat-ground').textContent=groundNames[h.groundCover]||h.groundCover||'Lawn';
+  document.getElementById('mi-stat-interior').textContent=furnStyleNames[h.furnitureStyle]||h.furnitureStyle||'—';
+  document.getElementById('mi-stat-decor').textContent=decor.length?decor.join(', '):'None';
+  document.getElementById('mi-stat-extras').textContent=extras.length?extras.join(', '):'None';
+
+  // Colour swatch
+  const dot=document.getElementById('mi-fav-dot');
+  if(dot) dot.style.background=fav;
+}
+
+function applyFav(hex){
+  document.documentElement.style.setProperty('--fav',hex);
+  document.documentElement.style.setProperty('--fav-light',hex+'18');
+  document.documentElement.style.setProperty('--fav-mid',hex+'55');
+}
+
+function buildMoveInHouseSVG(h){
+  const wc=h.wallColor||'#FF7043', rc=h.roofColor||'#5D4037', dc=h.doorColor||'#5D4037';
+  let wx=68,wy=88,ww=132,wh=76;
+  if(h.style==='modern'){wx=56;wy=76;ww=156;wh=88;}
+  else if(h.style==='bungalow'){wx=50;wy=96;ww=168;wh=68;}
+  else if(h.style==='victorian'){wx=68;wy=84;ww=132;wh=80;}
+  else if(h.style==='castle'){wx=64;wy=82;ww=140;wh=82;}
+  const two=h.floors===2,f2y=wy-46,cx=wx+ww/2;
+  let pts='';
+  if(h.roofShape==='gable')   pts=`${wx-12},${wy} ${cx},${wy-48} ${wx+ww+12},${wy}`;
+  else if(h.roofShape==='hip') pts=`${wx},${wy} ${wx+20},${wy-44} ${wx+ww-20},${wy-44} ${wx+ww},${wy}`;
+  else if(h.roofShape==='flat') pts=`${wx-6},${wy} ${wx+ww+6},${wy} ${wx+ww+6},${wy+8} ${wx-6},${wy+8}`;
+  else if(h.roofShape==='gambrel') pts=`${wx-12},${wy} ${wx+16},${wy-30} ${cx},${wy-52} ${wx+ww-16},${wy-30} ${wx+ww+12},${wy}`;
+  else if(h.roofShape==='mansard') pts=`${wx-12},${wy} ${wx+22},${wy-26} ${wx+22},${wy-44} ${wx+ww-22},${wy-44} ${wx+ww-22},${wy-26} ${wx+ww+12},${wy}`;
+  else pts=`${wx-12},${wy} ${cx},${wy-48} ${wx+ww+12},${wy}`;
+  const g=new Set(Array.isArray(h.garden)?h.garden:[]);
+  const gColors={grass:'#A5D6A7',gravel:'#BCAAA4',wildflower:'#C8E6C9',desert:'#FFE082'};
+  let garden='';
+  if(g.has('trees')){garden+=`<rect x="16" y="116" width="9" height="38" rx="3" fill="#5D4037"/><ellipse cx="20" cy="108" rx="17" ry="19" fill="#2E7D32"/><ellipse cx="20" cy="100" rx="11" ry="13" fill="#388E3C"/><rect x="${wx+ww+15}" y="116" width="9" height="38" rx="3" fill="#5D4037"/><ellipse cx="${wx+ww+20}" cy="108" rx="17" ry="19" fill="#2E7D32"/><ellipse cx="${wx+ww+20}" cy="100" rx="11" ry="13" fill="#388E3C"/>`;}
+  if(g.has('flowers')){const fp=[22,36,50,186,200,214,228,242],fc=['#FF4081','#FF6D00','#FFD600','#E91E63','#7B1FA2','#FF7043','#F06292','#FFCA28'];fp.forEach((fx,i)=>{garden+=`<circle cx="${fx}" cy="${150+i%3*2}" r="4.5" fill="${fc[i%fc.length]}" opacity="0.9"/><rect x="${fx-1}" y="${154+i%3*2}" width="2" height="7" fill="#4CAF50"/>`;});}
+  if(g.has('pond')){garden+=`<ellipse cx="134" cy="170" rx="25" ry="9" fill="#4FC3F7" opacity="0.75"/><ellipse cx="134" cy="170" rx="25" ry="9" fill="none" stroke="#0288D1" stroke-width="1.5" opacity="0.55"/>`;}
+  if(g.has('path')){garden+=`<polygon points="110,152 158,152 167,195 101,195" fill="#BCAAA4"/>`;}
+  if(g.has('bush')){garden+=`<ellipse cx="${wx-11}" cy="153" rx="12" ry="9" fill="#558B2F"/><ellipse cx="${wx-5}" cy="150" rx="9" ry="7" fill="#689F38"/><ellipse cx="${wx+ww+11}" cy="153" rx="12" ry="9" fill="#558B2F"/><ellipse cx="${wx+ww+5}" cy="150" rx="9" ry="7" fill="#689F38"/>`;}
+  if(g.has('lamppost')){garden+=`<rect x="${wx-34}" y="112" width="4" height="42" rx="2" fill="#546E7A"/><rect x="${wx-40}" y="107" width="15" height="9" rx="3" fill="#546E7A"/><circle cx="${wx-33}" cy="109" r="5" fill="#FFD54F" opacity="0.85"/>`;}
+  if(h.fence){for(let fx=10;fx<258;fx+=16)garden+=`<rect x="${fx}" y="152" width="4" height="17" rx="2" fill="#8D6E63"/><polygon points="${fx},152 ${fx+2},146 ${fx+4},152" fill="#8D6E63"/>`;garden+=`<rect x="10" y="156" width="248" height="3.5" rx="1.5" fill="#795548"/><rect x="10" y="162" width="248" height="3.5" rx="1.5" fill="#795548"/>`;}
+  if(h.mailbox){garden+=`<rect x="${wx+ww+8}" y="136" width="14" height="10" rx="3" fill="#546E7A"/><rect x="${wx+ww+11}" y="129" width="2" height="9" fill="#455A64"/>`;}
+  let matTex='';
+  if(h.material==='brick'){const dk=darken(wc,0.22);for(let r=0;r<Math.ceil(wh/10);r++){const off=r%2?14:0;for(let bx=wx-off;bx<wx+ww;bx+=28){const by=wy+r*10;if(by+8>wy+wh)continue;matTex+=`<rect x="${bx+1}" y="${by+1}" width="26" height="8" rx="1" fill="none" stroke="${dk}" stroke-width="0.8" opacity="0.32"/>`;}};}
+  else if(h.material==='wood'){const dk=darken(wc,0.22);for(let p=0;p<Math.ceil(wh/8);p++)matTex+=`<rect x="${wx}" y="${wy+p*8}" width="${ww}" height="1.5" fill="${dk}" opacity="0.2"/>`;}
+  else if(h.material==='log'){for(let p=0;p<Math.ceil(wh/10);p++){const lc=p%2?darken(wc,0.08):lighten(wc,0.08);matTex+=`<rect x="${wx}" y="${wy+p*10}" width="${ww}" height="10" fill="${lc}" opacity="0.22"/><rect x="${wx}" y="${wy+p*10+9}" width="${ww}" height="1.5" fill="${darken(wc,0.22)}" opacity="0.18"/>`;};}
+  const f2=two?`<rect x="${wx+10}" y="${f2y}" width="${ww-20}" height="50" rx="4" fill="${darken(wc,0.12)}"/>`:'';
+  const r2=two?`<polygon points="${wx+10},${f2y} ${cx},${f2y-36} ${wx+ww-10},${f2y}" fill="${darken(rc,0.12)}"/>`:'';
+  const chimney=h.chimney?`<rect x="${wx+22}" y="${wy-42}" width="15" height="36" rx="3" fill="#616161"/><rect x="${wx+18}" y="${wy-42}" width="23" height="6" rx="2" fill="#424242"/><ellipse cx="${wx+30}" cy="${wy-45}" rx="4" ry="2.5" fill="#9E9E9E" opacity="0.45"/>`:'';
+  let solar='';
+  if(h.solar){const sy=h.roofShape==='flat'?wy-4:wy-8;solar=`<rect x="${cx-26}" y="${sy}" width="20" height="11" rx="2" fill="#29B6F6" opacity="0.85"/><rect x="${cx+6}" y="${sy}" width="20" height="11" rx="2" fill="#29B6F6" opacity="0.85"/>`;}
+  const dby=wy+wh,ddh=37,ddw=26,ddy=dby-ddh,dcx=wx+ww/2-13;
+  let door='';
+  if(h.doorStyle==='arched') door=`<path d="M${dcx},${dby} L${dcx},${ddy+10} Q${dcx+ddw/2},${ddy-8} ${dcx+ddw},${ddy+10} L${dcx+ddw},${dby} Z" fill="${dc}"/><circle cx="${dcx+ddw-6}" cy="${ddy+ddh/2}" r="2.5" fill="#FFD54F"/>`;
+  else if(h.doorStyle==='double') door=`<rect x="${dcx-7}" y="${ddy}" width="${ddw+14}" height="${ddh}" rx="3" fill="${dc}"/><line x1="${dcx+7}" y1="${ddy}" x2="${dcx+7}" y2="${dby}" stroke="${darken(dc,0.28)}" stroke-width="1.8" opacity="0.4"/>`;
+  else if(h.doorStyle==='sliding') door=`<rect x="${dcx}" y="${ddy}" width="${ddw}" height="${ddh}" rx="2" fill="#B3E5FC" opacity="0.75"/><rect x="${dcx}" y="${ddy}" width="${ddw}" height="${ddh}" rx="2" fill="none" stroke="${dc}" stroke-width="2.5"/>`;
+  else if(h.doorStyle==='dutch') door=`<rect x="${dcx}" y="${ddy}" width="${ddw}" height="${ddh}" rx="3" fill="${dc}"/><line x1="${dcx}" y1="${ddy+ddh/2}" x2="${dcx+ddw}" y2="${ddy+ddh/2}" stroke="${darken(dc,0.28)}" stroke-width="2" opacity="0.5"/><circle cx="${dcx+ddw-6}" cy="${ddy+ddh/2-5}" r="2.5" fill="#FFD54F"/>`;
+  else door=`<rect x="${dcx}" y="${ddy}" width="${ddw}" height="${ddh}" rx="3" fill="${dc}"/><circle cx="${dcx+ddw-6}" cy="${ddy+ddh/2}" r="2.5" fill="#FFD54F"/><rect x="${dcx+3}" y="${ddy+3}" width="${ddw-6}" height="${ddh/2-2}" rx="2" fill="${darken(dc,0.28)}" opacity="0.16"/>`;
+  const wc2='#B3E5FC',wb='#0277BD';
+  const dW=(x,y)=>{
+    if(h.windowStyle==='arched') return `<path d="M${x},${y+19} L${x},${y+8} Q${x+10.5},${y-4} ${x+21},${y+8} L${x+21},${y+19} Z" fill="${wc2}"/><path d="M${x},${y+19} L${x},${y+8} Q${x+10.5},${y-4} ${x+21},${y+8} L${x+21},${y+19} Z" fill="none" stroke="${wb}" stroke-width="1.5"/>`;
+    if(h.windowStyle==='porthole') return `<circle cx="${x+10}" cy="${y+10}" r="10" fill="${wc2}"/><circle cx="${x+10}" cy="${y+10}" r="10" fill="none" stroke="${wb}" stroke-width="2"/>`;
+    return `<rect x="${x}" y="${y}" width="21" height="19" rx="2" fill="${wc2}"/><rect x="${x}" y="${y}" width="21" height="19" rx="2" fill="none" stroke="${wb}" stroke-width="1.5"/><line x1="${x+10.5}" y1="${y}" x2="${x+10.5}" y2="${y+19}" stroke="white" stroke-width="1.2"/><line x1="${x}" y1="${y+9.5}" x2="${x+21}" y2="${y+9.5}" stroke="white" stroke-width="1.2"/>`;
+  };
+  const wins=dW(wx+13,wy+15)+dW(wx+ww-34,wy+15)+(two?dW(wx+24,f2y+11)+dW(wx+ww-45,f2y+11):'');
+  const castleCren=h.style==='castle'?[wx,wx+18,wx+36,wx+54,wx+72,wx+90,wx+108,wx+126].map(bx=>`<rect x="${bx}" y="${wy-16}" width="14" height="18" rx="1" fill="${rc}"/>`).join(''):'';
+  return `<svg viewBox="0 0 268 195" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block">
+    <rect width="268" height="195" fill="#DDEEFF"/>
+    <rect width="268" height="52" fill="#C0D8F8" opacity="0.5"/>
+    <ellipse cx="50" cy="24" rx="21" ry="10" fill="white" opacity="0.88"/>
+    <ellipse cx="66" cy="18" rx="15" ry="9" fill="white" opacity="0.88"/>
+    <ellipse cx="202" cy="28" rx="18" ry="9" fill="white" opacity="0.82"/>
+    <ellipse cx="217" cy="22" rx="12" ry="7" fill="white" opacity="0.82"/>
+    <circle cx="240" cy="20" r="13" fill="#FFD54F" opacity="0.85"/>
+    <rect y="152" width="268" height="43" fill="${gColors[h.groundCover]||'#A5D6A7'}"/>
+    ${garden}${f2}
+    <rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" rx="4" fill="${wc}"/>
+    ${matTex}${r2}
+    <polygon points="${pts}" fill="${rc}"/>
+    ${castleCren}${chimney}${solar}${door}${wins}
+  </svg>`;
+}
+
+function buildMoveInInteriorSVG(h){
+  const wc=h.intWallColor||'#FFF9C4', fc=h.furnColor||'#795548';
+  const floorColors={wood:'#BCAAA4',tile:'#CFD8DC',carpet:'#B39DDB',marble:'#E0E0E0',concrete:'#9E9E9E'};
+  let fl='';
+  if(h.flooring==='wood'){for(let i=0;i<4;i++)fl+=`<line x1="0" y1="${164+i*7}" x2="268" y2="${164+i*7}" stroke="${darken(floorColors.wood,0.15)}" stroke-width="1" opacity="0.45"/>`;for(let i=0;i<8;i++)fl+=`<line x1="${i*38}" y1="164" x2="${i*38+20}" y2="195" stroke="${darken(floorColors.wood,0.15)}" stroke-width="0.8" opacity="0.28"/>`;}
+  else if(h.flooring==='tile'){for(let tx=0;tx<268;tx+=27)for(let ty=164;ty<195;ty+=14)fl+=`<rect x="${tx+1}" y="${ty+1}" width="26" height="13" rx="1" fill="none" stroke="${darken(floorColors.tile||'#CFD8DC',0.15)}" stroke-width="0.8" opacity="0.38"/>`;}
+  const fs=h.furnitureStyle||'cosy';
+  let fhtml='';
+  if(fs==='cosy'||fs==='rustic'){fhtml+=`<rect x="36" y="134" width="96" height="28" rx="6" fill="${fc}"/><rect x="36" y="127" width="96" height="12" rx="5" fill="${darken(fc,0.1)}"/><rect x="29" y="132" width="12" height="32" rx="4" fill="${darken(fc,0.1)}"/><rect x="128" y="132" width="12" height="32" rx="4" fill="${darken(fc,0.1)}"/><rect x="55" y="150" width="56" height="15" rx="3" fill="${darken(fc,0.22)}"/><rect x="166" y="136" width="44" height="25" rx="5" fill="${lighten(fc,0.1)}"/><rect x="166" y="130" width="44" height="10" rx="4" fill="${darken(fc,0.08)}"/>`;}
+  else if(fs==='modern'||fs==='minimalist'){fhtml+=`<rect x="38" y="138" width="92" height="23" rx="3" fill="${fc}"/><rect x="38" y="130" width="92" height="10" rx="2" fill="${darken(fc,0.12)}"/><rect x="34" y="136" width="8" height="27" rx="2" fill="${darken(fc,0.12)}"/><rect x="128" y="136" width="8" height="27" rx="2" fill="${darken(fc,0.12)}"/><rect x="58" y="152" width="52" height="11" rx="1" fill="${darken(fc,0.2)}"/><rect x="168" y="138" width="42" height="23" rx="2" fill="${lighten(fc,0.08)}"/>`;}
+  else if(fs==='luxury'){fhtml+=`<rect x="34" y="131" width="104" height="30" rx="8" fill="${fc}"/><rect x="34" y="123" width="104" height="14" rx="6" fill="${darken(fc,0.08)}"/><rect x="26" y="129" width="14" height="34" rx="6" fill="${darken(fc,0.08)}"/><rect x="136" y="129" width="14" height="34" rx="6" fill="${darken(fc,0.08)}"/><rect x="52" y="150" width="70" height="13" rx="4" fill="${darken(fc,0.22)}"/><circle cx="87" cy="150" r="3" fill="#FFD54F" opacity="0.7"/><rect x="164" y="131" width="50" height="30" rx="8" fill="${lighten(fc,0.1)}"/>`;}
+  fhtml+=`<rect x="84" y="78" width="100" height="56" rx="4" fill="${darken(wc,0.1)}"/><rect x="88" y="82" width="92" height="48" rx="2" fill="#1A1A2E"/><rect x="126" y="134" width="16" height="6" rx="2" fill="${darken(wc,0.18)}"/>`;
+  const dec=new Set(Array.isArray(h.decor)?h.decor:[]);
+  let dhtml='';
+  if(dec.has('plants'))dhtml+=`<rect x="226" y="126" width="8" height="20" rx="2" fill="#795548"/><ellipse cx="230" cy="112" rx="13" ry="11" fill="#4CAF50"/><ellipse cx="221" cy="116" rx="7" ry="7" fill="#66BB6A"/><ellipse cx="239" cy="116" rx="7" ry="7" fill="#66BB6A"/>`;
+  if(dec.has('art'))dhtml+=`<rect x="12" y="64" width="34" height="26" rx="3" fill="${lighten(wc,0.3)}" stroke="${darken(wc,0.3)}" stroke-width="1.5"/><ellipse cx="29" cy="75" rx="7" ry="5" fill="#FF7043" opacity="0.6"/><rect x="12" y="102" width="34" height="20" rx="3" fill="${lighten(wc,0.3)}" stroke="${darken(wc,0.3)}" stroke-width="1.5"/>`;
+  if(dec.has('rug'))dhtml+=`<ellipse cx="96" cy="161" rx="52" ry="7" fill="${lighten(fc,0.3)}" opacity="0.62"/><ellipse cx="96" cy="161" rx="52" ry="7" fill="none" stroke="${fc}" stroke-width="1.5" opacity="0.38"/>`;
+  if(dec.has('bookshelf')){dhtml+=`<rect x="9" y="94" width="26" height="52" rx="3" fill="${darken(fc,0.18)}"/>`;['#E53935','#1565C0','#2E7D32','#F57F17','#6A1B9A','#00838F'].forEach((bc,bi)=>{dhtml+=`<rect x="12" y="${98+bi*8}" width="20" height="6" rx="1" fill="${bc}"/>`;});}
+  if(dec.has('fireplace'))dhtml+=`<rect x="105" y="142" width="58" height="24" rx="3" fill="#5D4037"/><rect x="111" y="146" width="46" height="16" rx="2" fill="#1A1A1A"/><ellipse cx="134" cy="157" rx="13" ry="5" fill="#FF5722" opacity="0.8"/><ellipse cx="134" cy="154" rx="9" ry="4" fill="#FF9800" opacity="0.8"/><rect x="101" y="138" width="66" height="6" rx="2" fill="${darken(fc,0.1)}"/>`;
+  if(dec.has('piano'))dhtml+=`<rect x="190" y="128" width="58" height="36" rx="3" fill="#1A1A1A"/><rect x="194" y="132" width="50" height="22" rx="2" fill="#2C2C2C"/>`;
+  return `<svg viewBox="0 0 268 195" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block">
+    <rect width="268" height="195" fill="${wc}"/>
+    <rect y="164" width="268" height="31" fill="${floorColors[h.flooring]||'#BCAAA4'}"/>
+    <rect x="0" y="0" width="11" height="195" fill="#8D6E63" opacity="0.28"/>
+    <rect x="257" y="0" width="11" height="195" fill="#8D6E63" opacity="0.28"/>
+    ${fl}${fhtml}${dhtml}
+  </svg>`;
+}
+
+function buildMoveInAvatarSVG(data){
+  const s=data.skin||'#FDBCB4', h=data.hairColor||'#3E2723', o=data.outfitColor||'#7C4DFF';
+  return `<rect x="52" y="108" width="56" height="72" rx="6" fill="${o}"/><rect x="34" y="110" width="18" height="44" rx="9" fill="${o}"/><rect x="108" y="110" width="18" height="44" rx="9" fill="${o}"/><rect x="34" y="150" width="18" height="16" rx="8" fill="${s}"/><rect x="108" y="150" width="18" height="16" rx="8" fill="${s}"/><rect x="58" y="178" width="20" height="18" rx="6" fill="#5D4037"/><rect x="82" y="178" width="20" height="18" rx="6" fill="#5D4037"/><rect x="68" y="100" width="24" height="16" rx="4" fill="${s}"/><ellipse cx="80" cy="76" rx="28" ry="30" fill="${s}"/><ellipse cx="80" cy="58" rx="28" ry="14" fill="${h}"/><rect x="52" y="56" width="10" height="18" rx="5" fill="${h}"/><rect x="98" y="56" width="10" height="18" rx="5" fill="${h}"/><circle cx="68" cy="74" r="4" fill="#3E2723"/><circle cx="92" cy="74" r="4" fill="#3E2723"/><path d="M66 86 Q80 96 94 86" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="61" cy="82" rx="7" ry="4" fill="#FF8A80" opacity="0.4"/><ellipse cx="99" cy="82" rx="7" ry="4" fill="#FF8A80" opacity="0.4"/>`;
+}
+
+// ── Confetti ──────────────────────────────────────────────────────────
+function launchConfetti(){
+  const canvas=document.createElement('canvas');
+  canvas.className='mi-confetti';
+  document.body.appendChild(canvas);
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const fav=getComputedStyle(document.documentElement).getPropertyValue('--fav').trim()||'#FF7043';
+  const colors=[fav,'#FFD54F','#66BB6A','#29B6F6','#FF4081','#AB47BC'];
+  const pieces=Array.from({length:80},()=>({
+    x:Math.random()*canvas.width, y:-10-Math.random()*40,
+    r:Math.random()*5+2,
+    c:colors[Math.floor(Math.random()*colors.length)],
+    sp:Math.random()*2.5+1.5,
+    sw:(Math.random()-0.5)*1.5,
+    rot:Math.random()*360, rs:(Math.random()-0.5)*5,
+    shape:Math.random()>.5?'circle':'rect'
+  }));
+  const DURATION=90;
+  let frame=0;
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const alpha=Math.max(0, 1-(frame/DURATION)**2);
+    pieces.forEach(p=>{
+      p.y+=p.sp; p.x+=p.sw; p.rot+=p.rs;
+      ctx.save();
+      ctx.globalAlpha=alpha;
+      ctx.fillStyle=p.c;
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      if(p.shape==='circle'){ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();}
+      else{ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);}
+      ctx.restore();
+    });
+    frame++;
+    if(frame<=DURATION) requestAnimationFrame(draw);
+    else canvas.remove();
+  })();
+}
+
+// ── Init character screen ─────────────────────────────────────────────
+buildFavGrid();
+buildOptGridChar('hair-grid',hairStyles,'hair',hairIcons);
+buildOptGridChar('face-grid',faces,'face',faceIcons);
+buildOptGridChar('outfit-grid',outfits,'outfit',outfitIcons);
+buildOptGridChar('accessory-grid',accessories,'accessory',accIcons);
+buildColorGridChar('skin-grid',skinTones,'skin');
+buildColorGridChar('haircolor-grid',hairColors,'hairColor');
+buildColorGridChar('outfitcolor-grid',outfitColors,'outfitColor');
+applyFavColor(avatar.favColor);
+renderAvatar();
+</script>
+<!-- ════════════════════════════════════════════════════
+     SCREEN 3 — MOVE-IN
+═════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-movein">
+
+<header>
+  <h1 id="mi-welcome">Welcome home! 🎉</h1>
+  <p>Your dream home is ready — take a look around!</p>
+</header>
+
+<div class="steps">
+  <div class="step done"><div class="step-dot">✓</div>Character</div>
+  <div class="step-line done"></div>
+  <div class="step done"><div class="step-dot">✓</div>House</div>
+  <div class="step-line done"></div>
+  <div class="step active"><div class="step-dot">3</div>Move In</div>
+</div>
+
+<div class="movein-layout">
+
+  <!-- Hero row: house + avatar -->
+  <div class="mi-hero">
+    <!-- House tabs (exterior / interior) -->
+    <div class="mi-house-card">
+      <div class="mi-banner" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;">
+        <h2 style="font-family:'Baloo 2',cursive;font-size:.9rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:1px;margin:0;">Your House</h2>
+        <div style="display:flex;gap:6px;">
+          <button onclick="miTab('ext')" id="mi-tab-ext" style="padding:4px 12px;font-family:'Baloo 2',cursive;font-size:.75rem;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.25);color:#fff;cursor:pointer;">Exterior</button>
+          <button onclick="miTab('int')" id="mi-tab-int" style="padding:4px 12px;font-family:'Baloo 2',cursive;font-size:.75rem;font-weight:700;border-radius:10px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;">Interior</button>
+        </div>
+      </div>
+      <div id="mi-house-svg-wrap"></div>
+      <div id="mi-interior-svg-wrap" style="display:none;"></div>
+    </div>
+
+    <!-- Character card -->
+    <div class="mi-char-card">
+      <div class="mi-banner"><h2 style="font-family:'Baloo 2',cursive;font-size:.9rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:1px;margin:0;">Your Avatar</h2></div>
+      <div class="mi-char-body">
+        <svg id="mi-avatar-svg" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg" width="120" height="150" style="display:block;margin:0 auto 8px;overflow:visible;"></svg>
+        <div class="mi-player-name" id="mi-avatar-name">Player</div>
+        <div class="mi-player-sub">Homeowner</div>
+        <div style="margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--fav-light);border:1.5px solid var(--fav-mid);">
+          <span id="mi-fav-dot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--fav);"></span>
+          <span style="font-size:.72rem;font-weight:700;color:var(--fav);">Favourite colour</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats grid -->
+  <div class="mi-stats">
+    <div class="mi-stat"><div class="mi-stat-label">Style</div><div class="mi-stat-val" id="mi-stat-style">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Size</div><div class="mi-stat-val" id="mi-stat-floors">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Material</div><div class="mi-stat-val" id="mi-stat-mat">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Roof</div><div class="mi-stat-val" id="mi-stat-roof">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Ground</div><div class="mi-stat-val" id="mi-stat-ground">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Garden</div><div class="mi-stat-val" id="mi-stat-garden">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Interior</div><div class="mi-stat-val" id="mi-stat-interior">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Decor</div><div class="mi-stat-val" id="mi-stat-decor">—</div></div>
+    <div class="mi-stat"><div class="mi-stat-label">Extras</div><div class="mi-stat-val" id="mi-stat-extras">—</div></div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="mi-actions">
+    <button class="mi-btn mi-btn-primary" onclick="goBack()">← Edit House</button>
+  </div>
+
+</div>
+</div><!-- /screen-movein -->
+
+<script>
+function miTab(tab){
+  const ext=document.getElementById('mi-house-svg-wrap');
+  const int=document.getElementById('mi-interior-svg-wrap');
+  const btnExt=document.getElementById('mi-tab-ext');
+  const btnInt=document.getElementById('mi-tab-int');
+  if(tab==='ext'){
+    ext.style.display=''; int.style.display='none';
+    btnExt.style.background='rgba(255,255,255,.25)'; btnExt.style.color='#fff'; btnExt.style.borderColor='rgba(255,255,255,.5)';
+    btnInt.style.background='transparent'; btnInt.style.color='rgba(255,255,255,.7)'; btnInt.style.borderColor='rgba(255,255,255,.25)';
+  } else {
+    ext.style.display='none'; int.style.display='';
+    btnInt.style.background='rgba(255,255,255,.25)'; btnInt.style.color='#fff'; btnInt.style.borderColor='rgba(255,255,255,.5)';
+    btnExt.style.background='transparent'; btnExt.style.color='rgba(255,255,255,.7)'; btnExt.style.borderColor='rgba(255,255,255,.25)';
+  }
+}
+function goBack(){
+  document.getElementById('screen-movein').classList.remove('active');
+  document.getElementById('screen-house').classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+
+</body>
+</html>
